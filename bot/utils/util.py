@@ -68,14 +68,14 @@ async def hide_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # загружает сообщение из папки  /resources/messages/
 def load_message(name):
-    message_path = os.path.join(PROJECT_ROOT, "resources", "messages", f"{name}.txt")
+    message_path = os.path.join(PROJECT_ROOT, "bot", "resources", "messages", f"{name}.txt")
     with open(message_path, "r", encoding="utf8") as file:
         return file.read()
 
 
 # загружает промпт из папки  /resources/messages/
 def load_prompt(name):
-    prompt_path = os.path.join(PROJECT_ROOT, "resources", "prompts", f"{name}.txt")
+    prompt_path = os.path.join(PROJECT_ROOT, "bot", "resources", "prompts", f"{name}.txt")
     with open(prompt_path, "r", encoding="utf8") as file:
         return file.read()
 

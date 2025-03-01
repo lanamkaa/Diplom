@@ -13,6 +13,7 @@ Features:
         3.3. Система оценок
 
 ## How to Run
+source venv/Scripts/activate && python -m bot
 
 1. **Upgrade Python (if necessary):**
     Ensure you have Python 3.7 or higher installed. You can download it from [python.org](https://www.python.org/downloads/).
