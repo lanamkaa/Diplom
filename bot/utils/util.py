@@ -2,7 +2,10 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Message, BotCom
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
+import os
 
+# Get the project root directory
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 
 # конвертирует объект user в строку
 def dialog_user_info_to_str(user) -> str:
@@ -45,7 +48,8 @@ async def send_text_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE, 
 
 # посылает в чат фото
 async def send_photo(update: Update, context: ContextTypes.DEFAULT_TYPE, name: str) -> Message:
-    with open('resources/images/' + name + ".jpg", 'rb') as photo:
+    image_path = os.path.join(PROJECT_ROOT, "bot", "resources", "images", f"{name}.jpg")
+    with open(image_path, 'rb') as photo:
         return await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo)
 
 
@@ -64,13 +68,15 @@ async def hide_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # загружает сообщение из папки  /resources/messages/
 def load_message(name):
-    with open("resources/messages/" + name + ".txt", "r", encoding="utf8") as file:
+    message_path = os.path.join(PROJECT_ROOT, "resources", "messages", f"{name}.txt")
+    with open(message_path, "r", encoding="utf8") as file:
         return file.read()
 
 
 # загружает промпт из папки  /resources/messages/
 def load_prompt(name):
-    with open("resources/prompts/" + name + ".txt", "r", encoding="utf8") as file:
+    prompt_path = os.path.join(PROJECT_ROOT, "resources", "prompts", f"{name}.txt")
+    with open(prompt_path, "r", encoding="utf8") as file:
         return file.read()
 
 
