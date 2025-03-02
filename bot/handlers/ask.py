@@ -1,54 +1,31 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters, CallbackQueryHandler
+from ..yandexgpt import yandex_gpt_query
 
 # Define states
-ASK_RESPONSE = 1
+ASK_RESPONSE = range(1)
 
-async def ask_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle the user's question response."""
+async def ask_gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_question = update.message.text
     try:
-        message = update.message.text if update.message else update.callback_query.message.text
-        await update.message.reply_text(
-            f"Спасибо за ваш вопрос: {message}\nМы ответим вам в ближайшее время.",
-            reply_markup=InlineKeyboardMarkup([[
-                InlineKeyboardButton("⬅️ Вернуться в меню", callback_data="main_menu")
-            ]])
-        )
-        return ConversationHandler.END
-    except Exception as e:
-        print(f"Error in ask_response: {e}")
-        return ConversationHandler.END
+        gpt_response = await yandex_gpt_query(user_question)
+        await update.message.reply_text(f"{gpt_response}\n\nДля отмены действия - /cancel")
 
-async def start_asking(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Start the asking process."""
-    query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(
-        "Какой у вас вопрос?",
-        reply_markup=InlineKeyboardMarkup([[
-            InlineKeyboardButton("❌ Отмена", callback_data="cancel")
-        ]])
-    )
+    except Exception as e:
+        await update.message.reply_text(f"Произошла ошибка: {str(e)}")
+
     return ASK_RESPONSE
 
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Cancel the conversation."""
-    query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(
-        "Отменено. Нажмите кнопку ниже, чтобы вернуться в главное меню.",
-        reply_markup=InlineKeyboardMarkup([[
-            InlineKeyboardButton("⬅️ Главное меню", callback_data="main_menu")
-        ]])
-    )
+async def cancel(update, context):
+    await update.message.reply_text("Действие отменено.")
     return ConversationHandler.END
 
 # Create the conversation handler
 ask_handler = ConversationHandler(
-    entry_points=[CallbackQueryHandler(start_asking, pattern="^ask_response$")],
+    entry_points=[CommandHandler("ask", ask_gpt)],
     states={
-        ASK_RESPONSE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_response)],
+        ASK_RESPONSE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_gpt)],
     },
-    fallbacks=[CallbackQueryHandler(cancel, pattern="^cancel$")],
-    per_message=False  # Changed to False since we're mixing CallbackQueryHandler and MessageHandler
+    fallbacks=[CommandHandler("cancel", cancel)],
+    per_message=False  
 )

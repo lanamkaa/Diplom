@@ -14,7 +14,7 @@ from bot.handlers.start import start
 from bot.handlers.hello import hello_button
 from bot.handlers.help import help
 from bot.handlers.main_menu import main_menu
-from bot.handlers.ask import ask_response, ask_handler, ASK_RESPONSE
+from bot.handlers.ask import ask_gpt, ask_handler, ASK_RESPONSE
 from bot.handlers.feedback import cancel, feedback_handler
 from bot.handlers.services import services
 
@@ -22,10 +22,10 @@ from bot.handlers.services import services
 hello_handler = ConversationHandler(
     entry_points=[CallbackQueryHandler(hello_button)],
     states={
-        ASK_RESPONSE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_response)],
+        ASK_RESPONSE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_gpt)],
     },
     fallbacks=[CommandHandler("cancel", cancel)],
-    per_message=True
+    per_message=False
 )
 
 async def error_handler(update, context):
