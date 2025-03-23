@@ -31,6 +31,18 @@ Features:
         3.2. Стастистика
         3.3. Система оценок
 
+## How to Run Docker
+1) Build the Docker image: 
+docker build -t my-bot-image .
+2) Run the Docker container:
+docker run -d -p 80:80 --name my-bot-container my-bot-image
+3) Check the running container: 
+docker ps
+4) Stop the Docker container:
+docker stop my-bot-container
+5) Remove the Docker container:
+docker rm my-bot-container
+
 ## How to Run
 source venv/Scripts/activate && python -m bot
 
