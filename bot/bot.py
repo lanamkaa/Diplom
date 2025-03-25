@@ -1,6 +1,19 @@
 from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler, ConversationHandler, MessageHandler, filters
 from telegram.error import TelegramError
 import logging
+from bot.postgre import get_db_connection
+from dotenv import load_dotenv
+import os
+import sys
+
+# Load environment variables
+load_dotenv()
+
+# Try to connect to the database
+db = get_db_connection()
+if not db:
+    print("Failed to connect to the database. Please check your database settings in .env file.")
+    sys.exit(1)
 
 # Set up logging
 logging.basicConfig(
@@ -41,7 +54,7 @@ async def error_handler(update, context):
 
 def main():
     # Initialize bot with your token
-    app = ApplicationBuilder().token("7669989730:AAEm76XAyNnjcP7nZFEu-Fsm29CSOPbgxaw").build()
+    app = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
 
     # Add handlers
     app.add_handler(CommandHandler("start", start))
