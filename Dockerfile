@@ -1,21 +1,35 @@
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
+# Install system dependencies for PostgreSQL
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first to leverage Docker cache
+COPY requirements.txt /app/requirements.txt
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the entire project
 COPY . /app
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r bot/requirements.txt
+# Expose the port your app runs on
+EXPOSE 8000
 
-# Make port 80 available to the world outside this container
-EXPOSE 80
+# Use a shell script to run the application
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Define environment variable
-# ENV NAME World
-
-# Run bot.py when the container launches
-# CMD ["python", "bot/__main__.py"]
-# CMD ["source", "venv/Scripts/activate && python -m bot"]
+# Default command
+CMD ["/entrypoint.sh"]

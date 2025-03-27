@@ -31,6 +31,9 @@ Features:
         3.2. Стастистика
         3.3. Система оценок
 
+## How to run 
+docker-compose up --build
+
 ## How to Run Docker
 1) Build the Docker image: 
 docker build -t my-bot-image .
