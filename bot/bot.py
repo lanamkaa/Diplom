@@ -1,7 +1,7 @@
 from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler, ConversationHandler, MessageHandler, filters
 from telegram.error import TelegramError
 import logging
-from bot.postgre import get_db_connection
+from bot.database.connect import get_db_connection
 from dotenv import load_dotenv
 import os
 import sys
