@@ -3,7 +3,6 @@ from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandle
 from telegram.error import TelegramError
 import logging
 from bot.database.connect import get_db_connection
-from bot.database.users.update_new_user import update_user
 from dotenv import load_dotenv
 import os
 import sys
