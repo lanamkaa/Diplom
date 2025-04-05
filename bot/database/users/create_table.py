@@ -17,7 +17,8 @@ def create_user_table(conn=None):
         # Create users table
         cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            user_id BIGINT PRIMARY KEY,
+            user_id SERIAL PRIMARY KEY,
+            telegram_id BIGINT,
             username VARCHAR(100),
             
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
