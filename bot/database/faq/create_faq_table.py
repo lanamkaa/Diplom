@@ -1,8 +1,8 @@
 from ..connect import get_db_connection
 
-def create_text_responses_table(conn=None):
+def create_faq_table(conn=None):
     """
-    Create text_responses table if it doesn't exist.
+    Create FAQ table if it doesn't exist.
     Args:
         conn: Optional database connection. If not provided, creates a new connection.
     """
@@ -14,21 +14,21 @@ def create_text_responses_table(conn=None):
     cur = conn.cursor()
     
     try:
-        # Create text_responses table
+        # Create FAQ table
         cur.execute("""
-        CREATE TABLE IF NOT EXISTS text_responses (
-            text_response_id SERIAL PRIMARY KEY,
-            user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
-            response_text TEXT,
+        CREATE TABLE IF NOT EXISTS faq (
+            faq_id SERIAL PRIMARY KEY,
+            question TEXT,
+            answer TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)
 
         conn.commit()
-        print("Text responses table created successfully")
+        print("FAQ table created successfully")
         
     except Exception as e:
-        print(f"Error while creating text responses table: {e}")
+        print(f"Error while creating FAQ table: {e}")
         conn.rollback()
     finally:
         cur.close()

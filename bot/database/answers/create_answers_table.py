@@ -1,8 +1,8 @@
 from ..connect import get_db_connection
 
-def create_questions_table(conn=None):
+def create_answers_table(conn=None):
     """
-    Create questions table if it doesn't exist.
+    Create answers table if it doesn't exist.
     Args:
         conn: Optional database connection. If not provided, creates a new connection.
     """
@@ -14,31 +14,32 @@ def create_questions_table(conn=None):
     cur = conn.cursor()
     
     try:
-        # Create questions table without foreign key constraints
+        # Create answers table without foreign key constraints
         cur.execute("""
-        CREATE TABLE IF NOT EXISTS questions (
-            question_id SERIAL PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS answers (
+            answer_id SERIAL PRIMARY KEY,
+            question_id INTEGER,
             user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
-            question TEXT NOT NULL,
-            answer_id INTEGER,
+            answer_text TEXT,
+            rating INTEGER CHECK (rating >= 1 AND rating <= 5),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)
 
         conn.commit()
-        print("Questions table created successfully")
+        print("Answers table created successfully")
         
     except Exception as e:
-        print(f"Error while creating questions table: {e}")
+        print(f"Error while creating answers table: {e}")
         conn.rollback()
     finally:
         cur.close()
         if should_close:
             conn.close()
 
-def add_questions_constraints(conn=None):
+def add_answers_constraints(conn=None):
     """
-    Add foreign key constraints to questions table.
+    Add foreign key constraints to answers table.
     Args:
         conn: Optional database connection. If not provided, creates a new connection.
     """
@@ -55,12 +56,12 @@ def add_questions_constraints(conn=None):
         DO $$
         BEGIN
             IF NOT EXISTS (
-                SELECT 1 FROM pg_constraint WHERE conname = 'questions_answer_id_fkey'
+                SELECT 1 FROM pg_constraint WHERE conname = 'answers_question_id_fkey'
             ) THEN
-                ALTER TABLE questions
-                ADD CONSTRAINT questions_answer_id_fkey
-                FOREIGN KEY (answer_id)
-                REFERENCES answers(answer_id)
+                ALTER TABLE answers
+                ADD CONSTRAINT answers_question_id_fkey
+                FOREIGN KEY (question_id)
+                REFERENCES questions(question_id)
                 ON DELETE CASCADE;
             END IF;
         END
@@ -68,10 +69,10 @@ def add_questions_constraints(conn=None):
         """)
 
         conn.commit()
-        print("Questions table constraints added successfully")
+        print("Answers table constraints added successfully")
         
     except Exception as e:
-        print(f"Error while adding questions table constraints: {e}")
+        print(f"Error while adding answers table constraints: {e}")
         conn.rollback()
     finally:
         cur.close()

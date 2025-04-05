@@ -19,10 +19,12 @@ def create_user_table(conn=None):
         CREATE TABLE IF NOT EXISTS users (
             user_id BIGINT PRIMARY KEY,
             username VARCHAR(100),
+            
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)
-
+#question_id INTEGER REFERENCES questions(question_id) ON DELETE SET NULL,
+#            text_response_id INTEGER REFERENCES text_responses(text_response_id) ON DELETE SET NULL,
         conn.commit()
         print("User table created successfully")
         
