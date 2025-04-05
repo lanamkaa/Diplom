@@ -22,10 +22,6 @@ async def ask_gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("Здравствуйте! Чем могу помочь?\n\nДля отмены действия - /cancel")
     return ASK_RESPONSE
 
-#async def cancel(update, context):
-    await update.message.reply_text("Действие отменено.")
-    return ConversationHandler.END
-
 # Create the conversation handler
 ask_handler = ConversationHandler(
     entry_points=[CommandHandler("ask", ask_gpt)],
