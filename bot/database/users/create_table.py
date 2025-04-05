@@ -1,7 +1,16 @@
 from ..connect import get_db_connection
 
-def create_user_table():
-    conn = get_db_connection()
+def create_user_table(conn=None):
+    """
+    Create users table if it doesn't exist.
+    Args:
+        conn: Optional database connection. If not provided, creates a new connection.
+    """
+    should_close = False
+    if conn is None:
+        conn = get_db_connection()
+        should_close = True
+        
     cur = conn.cursor()
     
     try:
@@ -22,4 +31,5 @@ def create_user_table():
         conn.rollback()
     finally:
         cur.close()
-        conn.close()
+        if should_close:
+            conn.close()
