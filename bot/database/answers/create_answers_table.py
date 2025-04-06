@@ -21,7 +21,7 @@ def create_answers_table(conn=None):
             question_id INTEGER,
             user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
             answer_text TEXT,
-            rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+            rating INTEGER CHECK (rating IS NULL OR (rating >= 1 AND rating <= 5)),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)

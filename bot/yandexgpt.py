@@ -13,6 +13,7 @@ msg = "Ты консультант по вопросам цифровых сер
        "Система 1с: https://kb.nstu.ru/it:1c" \
        "Беспроводная сеть WI-FI: https://kb.nstu.ru/it:wifi"
 prefix = "Сразу отвечай на вопрос пользователя."
+
 async def yandex_gpt_query(user_ask):
     prompt = {
         "modelUri": "gpt://b1gnnevplbv23go5bath/yandexgpt-lite",
@@ -40,5 +41,6 @@ async def yandex_gpt_query(user_ask):
     response = requests.post(url, headers=headers, json=prompt)
     result = response.json()
 
+    print(result)
     text_response = result['result']['alternatives'][0]['message']['text']
     return text_response
