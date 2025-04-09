@@ -1,7 +1,7 @@
 from typing import Optional
 from ..connect import get_db_connection
 
-def create_question(user_id: int, question: str, answer_id: Optional[int] = None) -> Optional[int]:
+def create_question(user_id: int, question: str, answer_text: str, answer_rating: int = None) -> Optional[int]:
     """
     Create a new question in the database.
     
@@ -22,15 +22,15 @@ def create_question(user_id: int, question: str, answer_id: Optional[int] = None
         # Insert the question and return the question_id
         cur.execute(
             """
-            INSERT INTO questions (user_id, question, answer_id)
-            VALUES (%s, %s, %s)
-            RETURNING question_id;
+            INSERT INTO questions (user_id, question, answer_text, answer_rating)
+            VALUES (%s, %s, %s, %s)
             """,
-            (user_id, question, answer_id)
+            (user_id, question, answer_text, answer_rating)
         )
         
-        question_id = cur.fetchone()[0]
         conn.commit()
+        question_id = cur.fetchone()[0]
+        print("AGAIN!!!!!!", question_id)
         return question_id
         
     except Exception as e:

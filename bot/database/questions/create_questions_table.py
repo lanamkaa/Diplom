@@ -20,7 +20,8 @@ def create_questions_table(conn=None):
             question_id SERIAL PRIMARY KEY,
             user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
             question TEXT NOT NULL,
-            answer_id INTEGER,
+            answer_text TEXT,
+            answer_rating INTEGER CHECK (answer_rating IS NULL OR (answer_rating >= 1 AND answer_rating <= 5)),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)
@@ -30,48 +31,6 @@ def create_questions_table(conn=None):
         
     except Exception as e:
         print(f"Error while creating questions table: {e}")
-        conn.rollback()
-    finally:
-        cur.close()
-        if should_close:
-            conn.close()
-
-def add_questions_constraints(conn=None):
-    """
-    Add foreign key constraints to questions table.
-    Args:
-        conn: Optional database connection. If not provided, creates a new connection.
-    """
-    should_close = False
-    if conn is None:
-        conn = get_db_connection()
-        should_close = True
-        
-    cur = conn.cursor()
-    
-    try:
-        # Add foreign key constraint if it doesn't exist
-        cur.execute("""
-        DO $$
-        BEGIN
-            IF NOT EXISTS (
-                SELECT 1 FROM pg_constraint WHERE conname = 'questions_answer_id_fkey'
-            ) THEN
-                ALTER TABLE questions
-                ADD CONSTRAINT questions_answer_id_fkey
-                FOREIGN KEY (answer_id)
-                REFERENCES answers(answer_id)
-                ON DELETE CASCADE;
-            END IF;
-        END
-        $$;
-        """)
-
-        conn.commit()
-        print("Questions table constraints added successfully")
-        
-    except Exception as e:
-        print(f"Error while adding questions table constraints: {e}")
         conn.rollback()
     finally:
         cur.close()
