@@ -28,7 +28,6 @@ async def ask_gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(f"{gpt_response}\n\nДля отмены действия - /cancel")
 
         except Exception as e:
-            print("ATTENTION!!!!!!!", e)
             await update.message.reply_text("Произошла ошибка")
     else: 
         query = update.callback_query
