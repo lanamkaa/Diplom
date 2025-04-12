@@ -3,6 +3,7 @@ from .users.create_table import create_user_table
 from .faq.create_faq_table import create_faq_table
 from .questions.create_questions_table import create_questions_table
 from .text_responses.create_text_responses_table import create_text_responses_table
+from .statistics.create_table import create_link_statistics_table
 import sys
 
 def initialize_database():
@@ -21,6 +22,7 @@ def initialize_database():
         create_faq_table(conn)
         create_questions_table(conn)
         create_text_responses_table(conn)
+        create_link_statistics_table(conn)
         
         print("Database initialization successful")
         return True

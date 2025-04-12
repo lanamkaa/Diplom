@@ -5,6 +5,7 @@ from bot.handlers.feedback import cancel
 from ..yandexgpt import yandex_gpt_query
 from ..database.questions.create_question import create_question
 from ..database.users.get_user import get_user_by_telegram_id
+from .common import cancel
 
 
 # Define states

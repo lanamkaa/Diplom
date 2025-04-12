@@ -30,6 +30,7 @@ from bot.handlers.help import help
 from bot.handlers.main_menu import main_menu
 from bot.handlers.ask import ask_gpt, ask_handler, ASK_RESPONSE
 from bot.handlers.feedback import cancel, feedback_handler
+from bot.handlers.check_link import check_link_handler
 from bot.handlers.services import services
 
 # Create conversation handler for hello functionality
@@ -66,6 +67,7 @@ def main():
     app.add_handler(ask_handler)
     app.add_handler(hello_handler)
     app.add_handler(CallbackQueryHandler(hello_button))
+    app.add_handler(check_link_handler)
 
     initialize_database() # для создания таблиц при включении бота
     # Add error handler
