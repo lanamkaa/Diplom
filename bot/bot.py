@@ -1,11 +1,18 @@
 from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler, ConversationHandler, MessageHandler, filters
-from telegram.error import TelegramError
 import logging
 from bot.database.connect import get_db_connection
 from dotenv import load_dotenv
 import os
 import sys
 from bot.database.init import initialize_database
+# Import handlers
+from bot.handlers.start import start
+from bot.handlers.help import help
+from bot.handlers.main_menu import main_menu
+from bot.handlers.ask import ask_handler
+from bot.handlers.check_link import check_link_handler
+from bot.handlers.services import services
+from bot.handlers.feedback import feedback_handler
 
 # Load environment variables
 load_dotenv()
@@ -22,26 +29,6 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
-
-# Import handlers
-from bot.handlers.start import start
-from bot.handlers.hello import hello_button
-from bot.handlers.help import help
-from bot.handlers.main_menu import main_menu
-from bot.handlers.ask import ask_gpt, ask_handler, ASK_RESPONSE
-from bot.handlers.feedback import cancel, feedback_handler
-from bot.handlers.check_link import check_link_handler
-from bot.handlers.services import services
-
-# Create conversation handler for hello functionality
-hello_handler = ConversationHandler(
-    entry_points=[CallbackQueryHandler(hello_button)],
-    states={
-        ASK_RESPONSE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_gpt)],
-    },
-    fallbacks=[CommandHandler("cancel", cancel)],
-    per_message=False
-)
 
 async def error_handler(update, context):
     """Log Errors caused by Updates."""
@@ -63,21 +50,16 @@ def main():
     app.add_handler(CommandHandler("menu", main_menu))
     app.add_handler(CommandHandler("services", services))
     app.add_handler(CommandHandler("help", help))
-    app.add_handler(feedback_handler)
+    app.add_handler(feedback_handler)  # Add the new feedback conversation handler
     app.add_handler(ask_handler)
-    app.add_handler(hello_handler)
-    app.add_handler(CallbackQueryHandler(hello_button))
     app.add_handler(check_link_handler)
 
     initialize_database() # для создания таблиц при включении бота
     # Add error handler
-    # app.add_error_handler(error_handler)
+    app.add_error_handler(error_handler)
 
     # Start the bot
     print("Bot started...")
     app.run_polling()
 
 
-
-if __name__ == "__main__":
-    main()
