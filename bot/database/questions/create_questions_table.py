@@ -2,19 +2,20 @@ from ..connect import get_db_connection
 
 def create_questions_table(conn=None):
     """
-    Create questions table if it doesn't exist.
-    Args:
-        conn: Optional database connection. If not provided, creates a new connection.
+    Создание таблицы questions, если она не существует.
     """
     should_close = False
     if conn is None:
         conn = get_db_connection()
         should_close = True
         
+    if conn is None:
+        print("Ошибка: Не удалось установить подключение к базе данных")
+        return False
+        
     cur = conn.cursor()
     
     try:
-        # Create questions table without foreign key constraints
         cur.execute("""
         CREATE TABLE IF NOT EXISTS questions (
             question_id SERIAL PRIMARY KEY,
@@ -27,11 +28,13 @@ def create_questions_table(conn=None):
         """)
 
         conn.commit()
-        print("Questions table created successfully")
+        print("Таблица questions создана успешно")
+        return True
         
     except Exception as e:
-        print(f"Error while creating questions table: {e}")
+        print(f"Ошибка при создании таблицы questions: {e}")
         conn.rollback()
+        return False
     finally:
         cur.close()
         if should_close:

@@ -2,9 +2,7 @@ from ..connect import get_db_connection
 
 def create_user_table(conn=None):
     """
-    Create users table if it doesn't exist.
-    Args:
-        conn: Optional database connection. If not provided, creates a new connection.
+    Создание таблицы users, если она не существует.
     """
     should_close = False
     if conn is None:
@@ -14,7 +12,6 @@ def create_user_table(conn=None):
     cur = conn.cursor()
     
     try:
-        # Create users table
         cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             user_id SERIAL PRIMARY KEY,
@@ -24,13 +21,12 @@ def create_user_table(conn=None):
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)
-#question_id INTEGER REFERENCES questions(question_id) ON DELETE SET NULL,
-#            text_response_id INTEGER REFERENCES text_responses(text_response_id) ON DELETE SET NULL,
+
         conn.commit()
-        print("User table created successfully")
+        print("Таблица users создана успешно")
         
     except Exception as e:
-        print(f"Error while creating user table: {e}")
+        print(f"Ошибка при создании таблицы users: {e}")
         conn.rollback()
     finally:
         cur.close()

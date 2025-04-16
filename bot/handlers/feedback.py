@@ -3,14 +3,13 @@ from telegram.ext import ContextTypes, CommandHandler, ConversationHandler, Mess
 from ..database.feedback.create_feedback import create_feedback
 from .common import cancel
 
-
-# Create conversation handler for feedback
 FEEDBACK_RATING, FEEDBACK_COMMENT = range(2)
 
 async def handle_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    Handle the feedback command and show rating options.
+    Обрабатывает обратную связь и рейтинг.
     """
+    context.user_data['conversation_active'] = True
     keyboard = [
         [
             InlineKeyboardButton("1 ⭐", callback_data="feedback_1"),
@@ -23,7 +22,7 @@ async def handle_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.message.reply_text(
-        "How would you rate your experience?",
+        "Как вам взаимодействие с ботом?",
         reply_markup=reply_markup
     )
 
@@ -31,21 +30,21 @@ async def handle_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def handle_feedback_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    Handle the feedback callback when a user selects a rating.
+    Обрабатывается обратный вызов обратной связи, когда пользователь выбирает рейтинг.
     """
     query = update.callback_query
     await query.answer()
     
-    # Extract rating from callback data
+    # Извлечение рейтинга из данных обратного вызова
     rating = int(query.data.split('_')[1])
     
-    # Store rating in context for later use
+    # Сохранение рейтинга в контексте для последующего использования
     context.user_data['last_rating'] = rating
     
-    # Get user info
+    # Получение информации о пользователе
     user_id = query.from_user.id
     
-    # Store feedback in database
+    # Сохранение обратной связи в базе данных
     success = create_feedback(
         user_id=user_id,
         rating=rating,
@@ -54,14 +53,14 @@ async def handle_feedback_callback(update: Update, context: ContextTypes.DEFAULT
     
     if success:
         await query.edit_message_text(
-            f"Thank you for your {rating} star rating! "
-            "Would you like to add a comment to your feedback? "
-            "Please type your comment or use /cancel to skip."
+            f"Спасибо за {rating} ⭐!\n\n"
+            "Хотите оставить полный feedback?\n"
+            "Пожалуйста, напиши ваш отзыв или используйте /cancel для завершения"
         )
     else:
         await query.edit_message_text(
-            "Sorry, there was an error saving your feedback. "
-            "Please try again later."
+            "Произошла ошибка при сохранении обратной связи. "
+            "Пожалуйста, попробуйте еще раз."
         )
         return ConversationHandler.END
     
@@ -69,12 +68,12 @@ async def handle_feedback_callback(update: Update, context: ContextTypes.DEFAULT
 
 async def handle_feedback_comment(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
-    Handle additional feedback comments from users.
+    Обрабатывает дополнительные комментарии обратной связи от пользователей.
     """
     user_id = update.message.from_user.id
     comment = update.message.text
     
-    # Store feedback with comment
+    # Сохранение обратной связи с комментарием
     success = create_feedback(
         user_id=user_id,
         rating=context.user_data.get('last_rating', 0),
@@ -84,13 +83,13 @@ async def handle_feedback_comment(update: Update, context: ContextTypes.DEFAULT_
     
     if success:
         await update.message.reply_text(
-            "Thank you for your detailed feedback! "
-            "We appreciate you taking the time to help us improve."
+            "Спасибо за ваш подробный отзыв! "
+            "Вы помогаете нам стать лучше."
         )
     else:
         await update.message.reply_text(
-            "Sorry, there was an error saving your feedback. "
-            "Please try again later."
+            "Произошла ошибка при сохранении обратной связи. "
+            "Пожалуйста, попробуйте еще раз."
         )
     
     return ConversationHandler.END

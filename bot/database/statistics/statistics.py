@@ -3,27 +3,18 @@ from ..connect import get_db_connection
 
 def get_url_statistics(url: str, detailed: bool = False) -> Dict:
     """
-    Get statistics for a specific URL from the link_statistics table.
+    Получение статистики для конкретной ссылки из таблицы link_statistics.
     
     Args:
-        url: The URL to query statistics for
-        detailed: If True, returns additional statistics like average processing time
-                 If False, returns only the count of occurrences
-    
-    Returns:
-        Dictionary containing statistics:
-        - count: Number of times the URL was processed
-        If detailed=True, also includes:
-        - avg_processing_time: Average processing time for the URL
-        - first_seen: Timestamp of first occurrence
-        - last_seen: Timestamp of last occurrence
+        url: Ссылка для запроса статистики
+        detailed: Если True, возвращает дополнительную статистику, включая среднее время обработки
+                 Если False, возвращает только количество вхождений
     """
     conn = get_db_connection()
     cur = conn.cursor()
     
     try:
         if not detailed:
-            # Simple count query
             cur.execute(
                 "SELECT COUNT(*) FROM link_statistics WHERE url = %s",
                 (url,)
@@ -31,7 +22,6 @@ def get_url_statistics(url: str, detailed: bool = False) -> Dict:
             count = cur.fetchone()[0]
             return {"count": count}
         else:
-            # Detailed statistics query
             cur.execute("""
                 SELECT 
                     COUNT(*) as count,

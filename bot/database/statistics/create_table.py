@@ -2,9 +2,7 @@ from ..connect import get_db_connection
 
 def create_link_statistics_table(conn=None):
     """
-    Create link_statistics table if it doesn't exist.
-    Args:
-        conn: Optional database connection. If not provided, creates a new connection.
+    Создание таблицы link_statistics, если она не существует. 
     """
     should_close = False
     if conn is None:
@@ -14,7 +12,6 @@ def create_link_statistics_table(conn=None):
     cur = conn.cursor()
     
     try:
-        # Create link_statistics table
         cur.execute("""
         CREATE TABLE IF NOT EXISTS link_statistics (
             stat_id SERIAL PRIMARY KEY,
@@ -25,10 +22,10 @@ def create_link_statistics_table(conn=None):
         """)
 
         conn.commit()
-        print("Link statistics table created successfully")
+        print("Таблица link_statistics создана успешно")
         
     except Exception as e:
-        print(f"Error while creating link statistics table: {e}")
+        print(f"Ошибка при создании таблицы link_statistics: {e}")
         conn.rollback()
     finally:
         cur.close()

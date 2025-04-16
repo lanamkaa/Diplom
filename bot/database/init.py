@@ -9,16 +9,15 @@ import sys
 
 def initialize_database():
     """
-    Initialize database connection and create tables if they don't exist.
-    Returns True if successful, False otherwise.
+    Инициализация подключения к базе данных и создание таблиц, если они не существуют.
+    Возвращает True, если успешно, False в противном случае.
     """
     conn = get_db_connection()
     if not conn:
-        print("Failed to establish database connection", file=sys.stderr)
+        print("Не удалось установить подключение к базе данных", file=sys.stderr)
         return False
     
     try:
-        # Phase 1: Create all tables without circular foreign keys
         create_user_table(conn)
         create_faq_table(conn)
         create_questions_table(conn)
@@ -26,10 +25,10 @@ def initialize_database():
         create_link_statistics_table(conn)
         create_feedback_table(conn)
         
-        print("Database initialization successful")
+        print("Инициализация базы данных завершена успешно")
         return True
     except Exception as e:
-        print(f"Error initializing database: {e}", file=sys.stderr)
+        print(f"Ошибка инициализации базы данных: {e}", file=sys.stderr)
         return False
     finally:
         conn.close()

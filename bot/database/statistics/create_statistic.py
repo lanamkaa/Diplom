@@ -3,22 +3,21 @@ from ..connect import get_db_connection
 
 def create_link_statistic(url: str, processing_time: float) -> Optional[int]:
     """
-    Create a new link check statistic entry in the database.
+    Создание новой записи статистики проверки ссылки в базе данных.
     
     Args:
-        url (str): The URL that was checked
-        processing_time (float): The time taken to process the URL in seconds
+        url (str): Ссылка, которая была проверена
+        processing_time (float): Время, затраченное на обработку URL в секундах
         
     Returns:
-        Optional[int]: The ID of the created statistic entry
+        Optional[int]: ID созданной записи статистики
     """
     conn = None
     cur = None
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        
-        # Insert the statistic and return the stat_id
+
         cur.execute(
             """
             INSERT INTO link_statistics (url, processing_time)
@@ -33,7 +32,7 @@ def create_link_statistic(url: str, processing_time: float) -> Optional[int]:
         return stat_id
         
     except Exception as e:
-        print(f"Error creating link statistic: {e}")
+        print(f"Ошибка при создании записи статистики: {e}")
         if conn:
             conn.rollback()
         return None

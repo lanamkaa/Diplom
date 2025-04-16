@@ -1,4 +1,9 @@
+from telegram.ext import ConversationHandler
+
 async def cancel(update, context):
-    await update.message.reply_text("Вернуться в /menu")
-    return ConversationHandler.END
+    """Обработчик команды /cancel для диалогов"""
+    # Очищаем данные диалога
+    context.user_data.clear()
     
+    await update.message.reply_text("Вы отменили действие.\nВернуться в /start")
+    return ConversationHandler.END

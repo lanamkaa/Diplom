@@ -9,17 +9,14 @@ def create_feedback(
     is_dialog_feedback: bool = False
 ) -> bool:
     """
-    Create a new feedback entry in the database.
+    Создание новой записи в таблице feedback.
     
     Args:
-        user_id (int): Telegram user ID
-        rating (int): Rating value (typically 1-5)
-        comment (Optional[str]): Optional feedback comment
-        question_id (Optional[int]): Optional ID of the question being rated
-        is_dialog_feedback (bool): Whether this is feedback for an entire dialog or a single question
-        
-    Returns:
-        bool: True if feedback was successfully created, False otherwise
+        user_id (int): ID пользователя, который оставил отзыв
+        rating (int): Оценка (1-5)
+        comment (Optional[str]): Опциональный комментарий
+        question_id (Optional[int]): Опциональный ID вопроса, к которому относится отзыв
+        is_dialog_feedback (bool): True, если это отзыв за весь диалог, False - если за отдельный вопрос
     """
     try:
         conn = get_db_connection()
@@ -27,18 +24,17 @@ def create_feedback(
             return False
             
         with conn.cursor() as cur:
-            # Insert the feedback
             cur.execute("""
                 INSERT INTO feedback (user_id, rating, comment, question_id, is_dialog_feedback)
                 VALUES (%s, %s, %s, %s, %s)
             """, (user_id, rating, comment, question_id, is_dialog_feedback))
             
             conn.commit()
-            print("Feedback entry created successfully")
+            print("Создана новая запись в таблице feedback")
             return True
             
     except Exception as e:
-        print(f"Error creating feedback: {e}")
+        print(f"Ошибка при создании записи в таблице feedback: {e}")
         if conn:
             conn.rollback()
         return False

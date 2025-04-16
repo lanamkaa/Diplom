@@ -2,9 +2,7 @@ from ..connect import get_db_connection
 
 def create_feedback_table(conn=None):
     """
-    Create feedback table if it doesn't exist.
-    Args:
-        conn: Optional database connection. If not provided, creates a new connection.
+    Создание таблицы feedback, если она не существует.
     """
     should_close = False
     if conn is None:
@@ -14,7 +12,6 @@ def create_feedback_table(conn=None):
     cur = conn.cursor()
     
     try:
-        # Create feedback table
         cur.execute("""
         CREATE TABLE IF NOT EXISTS feedback (
             feedback_id SERIAL PRIMARY KEY,
@@ -28,10 +25,10 @@ def create_feedback_table(conn=None):
         """)
 
         conn.commit()
-        print("Feedback table created successfully")
+        print("Таблица feedback создана успешно")
         
     except Exception as e:
-        print(f"Error while creating feedback table: {e}")
+        print(f"Ошибка при создании таблицы feedback: {e}")
         conn.rollback()
     finally:
         cur.close()

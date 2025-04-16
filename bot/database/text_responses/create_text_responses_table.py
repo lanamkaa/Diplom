@@ -2,9 +2,7 @@ from ..connect import get_db_connection
 
 def create_text_responses_table(conn=None):
     """
-    Create text_responses table if it doesn't exist.
-    Args:
-        conn: Optional database connection. If not provided, creates a new connection.
+    Создание таблицы text_responses, если она не существует.
     """
     should_close = False
     if conn is None:
@@ -14,7 +12,6 @@ def create_text_responses_table(conn=None):
     cur = conn.cursor()
     
     try:
-        # Create text_responses table
         cur.execute("""
         CREATE TABLE IF NOT EXISTS text_responses (
             text_response_id SERIAL PRIMARY KEY,
@@ -25,10 +22,10 @@ def create_text_responses_table(conn=None):
         """)
 
         conn.commit()
-        print("Text responses table created successfully")
+        print("Таблица text_responses создана успешно")
         
     except Exception as e:
-        print(f"Error while creating text responses table: {e}")
+        print(f"Ошибка при создании таблицы text_responses: {e}")
         conn.rollback()
     finally:
         cur.close()

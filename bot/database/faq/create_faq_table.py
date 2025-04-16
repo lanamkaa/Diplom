@@ -2,9 +2,7 @@ from ..connect import get_db_connection
 
 def create_faq_table(conn=None):
     """
-    Create FAQ table if it doesn't exist.
-    Args:
-        conn: Optional database connection. If not provided, creates a new connection.
+    Создание таблицы faq, если она не существует.
     """
     should_close = False
     if conn is None:
@@ -14,7 +12,6 @@ def create_faq_table(conn=None):
     cur = conn.cursor()
     
     try:
-        # Create FAQ table
         cur.execute("""
         CREATE TABLE IF NOT EXISTS faq (
             faq_id SERIAL PRIMARY KEY,
@@ -25,10 +22,10 @@ def create_faq_table(conn=None):
         """)
 
         conn.commit()
-        print("FAQ table created successfully")
+        print("Таблица faq создана успешно")
         
     except Exception as e:
-        print(f"Error while creating FAQ table: {e}")
+        print(f"Ошибка при создании таблицы faq: {e}")
         conn.rollback()
     finally:
         cur.close()

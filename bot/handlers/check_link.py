@@ -1,64 +1,60 @@
-import logging
 import re
 import ipaddress
 from urllib.parse import urlparse, unquote
 
 import idna
-from telegram import Update
-from telegram.ext import CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
+from telegram.ext import CommandHandler, ConversationHandler, MessageHandler, filters
 from .common import cancel
 from ..database.statistics.create_statistic import create_link_statistic
 import time
 from ..database.statistics.statistics import get_url_statistics
 
-# ----- Secure URL Validator --------------------------------------------------
 CHECK_LINK_TEXT = range(1)
 
-# Set your trusted domain here.
 TRUSTED_DOMAIN = "nstu.ru"
 
 def is_safe_url(url: str) -> bool:
     """
-    Validates that the URL:
-      - Uses HTTPS.
-      - Does not specify a non-default port (only allow explicit port 443).
-      - Has a hostname that belongs to the trusted domain (allows subdomains).
-      - Is free from URL encoding or Unicode spoofing.
-      - Does not use an IP address as the hostname.
+    Проверяет, что URL:
+      - Использует HTTPS.
+      - Не указывает порт не по умолчанию (разрешен только явный порт 443).
+      - Имеет имя хоста, принадлежащее доверенному домену (разрешены поддомены).
+      - Не содержит кодировки URL или подмены Unicode.
+      - Не использует IP-адрес в качестве имени хоста.
     """
     try:
-        # Decode URL to mitigate URL-encoding tricks.
+        # Декодирование URL для предотвращения URL-encoding трюков.
         decoded_url = unquote(url)
         parsed = urlparse(decoded_url)
 
-        # Enforce HTTPS.
+        # Применяем HTTPS.
         if parsed.scheme != "https":
             return False
 
-        # Ensure a hostname is present.
+        # Убедитесь, что есть имя хоста.
         domain = parsed.hostname
         if domain is None:
             return False
 
-        # Normalize using IDNA encoding to catch Unicode spoofing.
+        # Нормализация с помощью IDNA кодирования для выявления подделок URL.
         try:
             ascii_domain = idna.encode(domain).decode("ascii").lower()
         except idna.IDNAError:
             return False
 
-        # Reject hostnames that contain suspicious sequences.
+        # Отклоняем хосты, содержащие подозрительные последовательности.
         if ".." in ascii_domain or re.search(r"[^a-z0-9\.\-]", ascii_domain):
             return False
 
-        # Block numeric IP addresses to help prevent SSRF attacks.
+        # Блокируем IP-адреса, чтобы предотвратить атаки SSRF.
         try:
             ipaddress.ip_address(ascii_domain)
             return False
         except ValueError:
-            pass  # Not an IP address, which is expected.
+            pass 
 
-        # Verify that the hostname belongs to the trusted domain.
-        # Allow if it is exactly the trusted domain or any subdomain.
+        # Убедитесь, что хост принадлежит доверенной домену.
+        # Разрешить, если он точно соответствует доверенной домену или является поддоменом.
         if ascii_domain == TRUSTED_DOMAIN or ascii_domain.endswith("." + TRUSTED_DOMAIN):
             return True
 
@@ -66,7 +62,6 @@ def is_safe_url(url: str) -> bool:
 
     except Exception:
         return False
-# ----- Telegram Bot Handlers -------------------------------------------------
 
 async def check_link(update, context):
     await update.message.reply_text(
