@@ -1,7 +1,8 @@
 from typing import Optional, Tuple
+from datetime import datetime
 from ..connect import get_db_connection
 
-def get_user_by_telegram_id(telegram_id: int) -> Optional[Tuple[int, str]]:
+def get_user_by_telegram_id(telegram_id: int) -> Optional[Tuple[int, str, str, datetime, datetime]]:
     """
     Получение информации о пользователе по их Telegram ID.
     """
@@ -13,7 +14,7 @@ def get_user_by_telegram_id(telegram_id: int) -> Optional[Tuple[int, str]]:
 
         cur.execute(
             """
-            SELECT user_id, username 
+            SELECT user_id, username, first_name, created_at, last_active_at
             FROM users 
             WHERE telegram_id = %s
             """,
@@ -23,7 +24,7 @@ def get_user_by_telegram_id(telegram_id: int) -> Optional[Tuple[int, str]]:
         result = cur.fetchone()
         
         if result:
-            return result[0], result[1]  # user_id, username
+            return result  #  возвращаем сразу все 5 полей
         return None
         
     except Exception as e:

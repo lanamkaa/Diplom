@@ -4,8 +4,13 @@ from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 import os
 
-# Get the project root directory
+# получает путь к корневой директории проекта
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+
+# экранирует специальные символы для MarkdownV2
+def escape_markdown(text: str) -> str:
+    escape_chars = r'\_*[]()~`>#+-=|{}.!'
+    return ''.join(f'\\{c}' if c in escape_chars else c for c in text)
 
 # конвертирует объект user в строку
 def dialog_user_info_to_str(user) -> str:

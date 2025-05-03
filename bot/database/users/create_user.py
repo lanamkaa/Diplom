@@ -1,6 +1,6 @@
 from ..connect import get_db_connection
 
-def create_user_if_not_exists(telegram_id: int, username: str, conn=None) -> bool:
+def create_user_if_not_exists(telegram_id: int, username: str, first_name: str, conn=None) -> bool:
     """
     Создание нового пользователя, если пользователь с таким telegram_id не существует.
     """
@@ -18,9 +18,9 @@ def create_user_if_not_exists(telegram_id: int, username: str, conn=None) -> boo
         
         if cur.fetchone() is None:
             cur.execute("""
-            INSERT INTO users (telegram_id, username)
-            VALUES (%s, %s)
-            """, (telegram_id, username))
+            INSERT INTO users (telegram_id, username, first_name, last_active_at)
+            VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
+            """, (telegram_id, username, first_name))
             print(f"Создан новый пользователь с telegram_id {telegram_id}")
         else:
             print(f"Пользователь с telegram_id {telegram_id} уже существует")

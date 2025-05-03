@@ -1,26 +1,23 @@
 import re
+import time
+import idna
 import ipaddress
 from urllib.parse import urlparse, unquote
 
-import idna
-from telegram.ext import CommandHandler, ConversationHandler, MessageHandler, filters
+from telegram import Update
+from telegram.ext import ContextTypes, CommandHandler, ConversationHandler, MessageHandler, filters
 from .common import cancel
+from .states import CHECK_LINK_TEXT
 from ..database.statistics.create_statistic import create_link_statistic
-import time
 from ..database.statistics.statistics import get_url_statistics
-
-CHECK_LINK_TEXT = range(1)
+from ..database.users.update_last_active import update_last_active_at
 
 TRUSTED_DOMAIN = "nstu.ru"
 
 def is_safe_url(url: str) -> bool:
     """
-    Проверяет, что URL:
-      - Использует HTTPS.
-      - Не указывает порт не по умолчанию (разрешен только явный порт 443).
-      - Имеет имя хоста, принадлежащее доверенному домену (разрешены поддомены).
-      - Не содержит кодировки URL или подмены Unicode.
-      - Не использует IP-адрес в качестве имени хоста.
+    Проверяет безопасность URL.
+    Требует HTTPS, проверяет домен, блокирует IP-адреса и подозрительные символы.
     """
     try:
         # Декодирование URL для предотвращения URL-encoding трюков.
@@ -63,22 +60,40 @@ def is_safe_url(url: str) -> bool:
     except Exception:
         return False
 
-async def check_link(update, context):
+async def check_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Обработчик команды /check_link.
+    Просит пользователя отправить ссылку для проверки.
+    """
+    context.user_data.clear()
+
+    telegram_id = update.effective_user.id
+    update_last_active_at(telegram_id)
+
     await update.message.reply_text(
-        "Укажите ссылку для проверки! 😊\n\nДля отмены действия - /cancel"
+        "🔍 Укажите ссылку для проверки безопасности!\n\nДля отмены используйте /cancel."
     )
     return CHECK_LINK_TEXT
 
-async def check_link_response(update, context):
+async def check_link_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Проверяет присланную ссылку и сообщает пользователю результат.
+    """
+    telegram_id = update.effective_user.id
+    update_last_active_at(telegram_id)
+
     link = update.message.text
     start = time.time()
+
     if is_safe_url(link):
-        reply = "✅ Сссылка безопасна."
+        reply = "✅ Ссылка безопасна."
     else:
-        reply = "❌ Сссылка не безопасна."
+        reply = "❌ Ссылка небезопасна."
+
     end = time.time()
     create_link_statistic(link, end - start)
-    print(get_url_statistics(link, True))
+    print(get_url_statistics(link, detailed=True))
+
     await update.message.reply_text(reply)
     return ConversationHandler.END
 

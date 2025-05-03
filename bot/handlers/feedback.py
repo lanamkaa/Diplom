@@ -1,15 +1,20 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, CommandHandler, ConversationHandler, MessageHandler, filters, CallbackQueryHandler
-from ..database.feedback.create_feedback import create_feedback
 from .common import cancel
+from .states import FEEDBACK_RATING, FEEDBACK_COMMENT
+from ..database.feedback.create_feedback import create_feedback
+from ..database.users.update_last_active import update_last_active_at
 
-FEEDBACK_RATING, FEEDBACK_COMMENT = range(2)
-
-async def handle_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Обрабатывает обратную связь и рейтинг.
+    Обработчик команды /feedback.
+    Запрашивает у пользователя оценку взаимодействия с ботом.
     """
     context.user_data['conversation_active'] = True
+
+    telegram_id = update.effective_user.id
+    update_last_active_at(telegram_id)
+
     keyboard = [
         [
             InlineKeyboardButton("1 ⭐", callback_data="feedback_1"),
@@ -28,25 +33,21 @@ async def handle_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     return FEEDBACK_RATING
 
-async def handle_feedback_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def handle_feedback_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Обрабатывается обратный вызов обратной связи, когда пользователь выбирает рейтинг.
+    Обрабатывает оценку пользователя и предлагает оставить отзыв.
     """
     query = update.callback_query
     await query.answer()
     
-    # Извлечение рейтинга из данных обратного вызова
     rating = int(query.data.split('_')[1])
-    
-    # Сохранение рейтинга в контексте для последующего использования
     context.user_data['last_rating'] = rating
     
-    # Получение информации о пользователе
-    user_id = query.from_user.id
-    
-    # Сохранение обратной связи в базе данных
+    telegram_id = query.from_user.id
+    update_last_active_at(telegram_id)
+
     success = create_feedback(
-        user_id=user_id,
+        user_id=telegram_id,
         rating=rating,
         is_dialog_feedback=True
     )
@@ -66,17 +67,19 @@ async def handle_feedback_callback(update: Update, context: ContextTypes.DEFAULT
     
     return FEEDBACK_COMMENT
 
-async def handle_feedback_comment(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def handle_feedback_comment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Обрабатывает дополнительные комментарии обратной связи от пользователей.
+    Сохраняет комментарий пользователя к обратной связи.
     """
-    user_id = update.message.from_user.id
+    telegram_id = update.effective_user.id
+    update_last_active_at(telegram_id)
+
     comment = update.message.text
-    
-    # Сохранение обратной связи с комментарием
+    rating = context.user_data.get('last_rating', 0)
+
     success = create_feedback(
-        user_id=user_id,
-        rating=context.user_data.get('last_rating', 0),
+        user_id=telegram_id,
+        rating=rating,
         comment=comment,
         is_dialog_feedback=True
     )
@@ -84,7 +87,7 @@ async def handle_feedback_comment(update: Update, context: ContextTypes.DEFAULT_
     if success:
         await update.message.reply_text(
             "Спасибо за ваш подробный отзыв! "
-            "Вы помогаете нам стать лучше."
+            "Вы помогаете нам стать лучше 😊"
         )
     else:
         await update.message.reply_text(

@@ -19,7 +19,7 @@ async def yandex_gpt_query(user_ask):
         "modelUri": "gpt://b1gnnevplbv23go5bath/yandexgpt-lite",
         "completionOptions": {
             "stream": False,
-            "temperature": 0.6,
+            "temperature": 0.2,
             "maxTokens": "2000"
         },
         "messages": [

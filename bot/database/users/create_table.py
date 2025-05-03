@@ -15,10 +15,12 @@ def create_user_table(conn=None):
         cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             user_id SERIAL PRIMARY KEY,
-            telegram_id BIGINT,
+            telegram_id BIGINT UNIQUE,
             username VARCHAR(100),
-            
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            first_name VARCHAR(100),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_active_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_reminder_sent_at TIMESTAMP
         )
         """)
 

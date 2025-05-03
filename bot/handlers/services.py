@@ -1,16 +1,34 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ContextTypes, ConversationHandler
+from telegram.constants import ParseMode
 from ..utils.scraping import get_links
+from ..database.users.update_last_active import update_last_active_at
 
-async def services(update, context):
+async def services(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Обработчик команды /services.
+    Показывает список сервисов НГТУ в виде кнопок.
+    """
+    context.user_data.clear()
+
+    telegram_id = update.effective_user.id
+    update_last_active_at(telegram_id)
+
     links = get_links()
+
     keyboard = [
         [InlineKeyboardButton(name, url=url)] for name, url in links
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text(
-        "*Сервисы НГТУ 🗂️*\n\n"
-        "Нажмите на понравившийся сервис, чтобы узнать о нём подробнее.",
-        reply_markup=reply_markup,
-        parse_mode="Markdown"
+        text=(
+            "🗂️ *Сервисы НГТУ*\n\n"
+            "Выберите интересующий вас сервис из списка ниже:\n"
+            "_Нажмите на кнопку для перехода._"
+        ),
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode=ParseMode.MARKDOWN_V2,
+        disable_web_page_preview=True
     )
+
+    return ConversationHandler.END
