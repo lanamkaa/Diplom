@@ -76,7 +76,7 @@ def main():
             CommandHandler("help", help),
         ],  
         allow_reentry=True,
-        per_message=True,
+        per_message=False,
         per_user=True,
         per_chat=True
     )
