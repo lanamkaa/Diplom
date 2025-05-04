@@ -1,12 +1,9 @@
 from telegram.ext import ApplicationBuilder, CommandHandler, ConversationHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes, JobQueue
 import logging
-from telegram import Update
 from bot.database.connect import get_db_connection
 from dotenv import load_dotenv
-from typing import Optional
 import os
 import sys
-import unicodedata
 from bot.database.init import initialize_database
 from bot.handlers.start import start
 from bot.handlers.help import help
@@ -16,7 +13,6 @@ from bot.handlers.common import cancel
 from bot.handlers.ask import start_ask, process_question, handle_rating
 from bot.handlers.check_link import check_link_response, check_link
 from bot.handlers.states import FEEDBACK_RATING, FEEDBACK_COMMENT, WAITING_FOR_QUESTION, CHECK_LINK_TEXT
-from bot.handlers.profile import profile
 
 load_dotenv()
 
@@ -83,10 +79,10 @@ def main():
 
     app.add_handler(conv)
 
-    #app.add_handler(CommandHandler("start", start))
-    #app.add_handler(CommandHandler("services", services))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("services", services))
     app.add_handler(CommandHandler("help", help))
-    #app.add_handler(CommandHandler("profile", profile))
+    # app.add_handler(CommandHandler("profile", profile))
 
 
     #app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_plain_text))
@@ -102,6 +98,3 @@ def main():
     print("Бот запущен...")
 
     app.run_polling()
-
-if __name__ == "__main__":
-    main()

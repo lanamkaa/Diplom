@@ -37,14 +37,14 @@ async def process_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "❌ Пользователь не найден. Введите /start для начала."
         )
         return WAITING_FOR_QUESTION
-
-    user_id, _ = user  # Распаковка user_id без лишних переменных
+    
+    user_id = user[0]  # Получаем только user_id из кортежа
     user_question = update.message.text
 
-
     try:
-        gpt_response = await yandex_gpt_query(user_question)
-        success, question_id = ask_gpt_workflow(user_id, user_question, gpt_response)
+        gpt_response, question_type = await yandex_gpt_query(user_question)
+        print(gpt_response, question_type)
+        success, question_id = ask_gpt_workflow(user_id, user_question, gpt_response, question_type)
 
         if success:
             context.user_data['current_question_id'] = question_id

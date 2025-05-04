@@ -41,6 +41,10 @@ def update_question(question_id: int, update_data: Dict[str, Any]) -> bool:
         if "answer_rating" in update_data:
             set_clauses.append("answer_rating = %s")
             values.append(update_data["answer_rating"])
+
+        if "question_type" in update_data:
+            set_clauses.append("question_type = %s")
+            values.append(update_data["question_type"])
             
         if not set_clauses:
             print("Ошибка: Нет полей для обновления")

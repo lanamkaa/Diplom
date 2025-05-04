@@ -2,16 +2,17 @@ from typing import Optional, Tuple
 from ..database.questions.create_question import create_question
 from ..database.questions.update_question import update_question
 
-def ask_gpt_workflow(user_id: int, question_text: str, gpt_response: str) -> Tuple[bool, Optional[int]]:
+def ask_gpt_workflow(user_id: int, question_text: str, gpt_response: str, question_type: str) -> Tuple[bool, Optional[int]]:
     """
     Создаёт вопрос в базе и сохраняет ответ от GPT.
     """
-    question_id = create_question(user_id, question_text)
+    question_id = create_question(user_id, question_text, question_type)
+    
     if question_id is None:
         print("❌ Не удалось создать запись вопроса")
         return False, None
     
-    update_success = update_question(question_id, {"answer_text": gpt_response})
+    update_success = update_question(question_id, {"answer_text": gpt_response, "question_type": question_type})
     if not update_success:
         print(f"❌ Не удалось обновить вопрос {question_id} с помощью ответа GPT")
         return False, question_id

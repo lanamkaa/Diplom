@@ -24,7 +24,7 @@ async def services(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text=(
             "🗂️ *Сервисы НГТУ*\n\n"
             "Выберите интересующий вас сервис из списка ниже:\n"
-            "_Нажмите на кнопку для перехода._"
+            "Нажмите на кнопку для перехода\\."
         ),
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN_V2,

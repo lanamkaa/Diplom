@@ -23,6 +23,7 @@ def create_questions_table(conn=None):
             question TEXT NOT NULL,
             answer_text TEXT,
             answer_rating INTEGER CHECK (answer_rating IS NULL OR (answer_rating >= 1 AND answer_rating <= 5)),
+            question_type VARCHAR(50) DEFAULT 'general',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)
