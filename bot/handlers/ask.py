@@ -12,7 +12,7 @@ async def start_ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     Обработчик команды /ask.
     Запрашивает у пользователя вопрос для GPT.
     """
-    print("!!!!!!!!!!!!!!!!!!!Не видишь меня")
+
     context.user_data.clear()
 
     telegram_id = update.effective_user.id
@@ -42,39 +42,45 @@ async def process_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_question = update.message.text
 
     try:
-        gpt_response, question_type = await yandex_gpt_query(user_question)
-        print(gpt_response, question_type)
-        success, question_id = ask_gpt_workflow(user_id, user_question, gpt_response, question_type)
+        gpt_response, question_type, valid_question = await yandex_gpt_query(user_question)
+        if valid_question:
+            print(gpt_response, question_type)
+            success, question_id = ask_gpt_workflow(user_id, user_question, gpt_response, question_type)
 
-        if success:
-            context.user_data['current_question_id'] = question_id
+            if success:
+                context.user_data['current_question_id'] = question_id
 
-            keyboard = [
-                [
-                    InlineKeyboardButton("1 ⭐", callback_data=f"rate_{question_id}_1"),
-                    InlineKeyboardButton("2 ⭐", callback_data=f"rate_{question_id}_2"),
-                    InlineKeyboardButton("3 ⭐", callback_data=f"rate_{question_id}_3"),
-                    InlineKeyboardButton("4 ⭐", callback_data=f"rate_{question_id}_4"),
-                    InlineKeyboardButton("5 ⭐", callback_data=f"rate_{question_id}_5"),
-                ],
-                [
-                    InlineKeyboardButton("Техническая поддержка", url="https://t.me/find_avrunev_bot"),
+                keyboard = [
+                    [
+                        InlineKeyboardButton("1 ⭐", callback_data=f"rate_{question_id}_1"),
+                        InlineKeyboardButton("2 ⭐", callback_data=f"rate_{question_id}_2"),
+                        InlineKeyboardButton("3 ⭐", callback_data=f"rate_{question_id}_3"),
+                        InlineKeyboardButton("4 ⭐", callback_data=f"rate_{question_id}_4"),
+                        InlineKeyboardButton("5 ⭐", callback_data=f"rate_{question_id}_5"),
+                    ],
+                    [
+                        InlineKeyboardButton("Техническая поддержка", url="https://t.me/find_avrunev_bot"),
+                    ]
                 ]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
+                reply_markup = InlineKeyboardMarkup(keyboard)
 
-            await update.message.reply_text(
-                f"{gpt_response}\n\n"
-                "Пожалуйста, оцените ответ:",
-                reply_markup=reply_markup
-            )
+                await update.message.reply_text(
+                    f"{gpt_response}\n\n"
+                    "Пожалуйста, оцените ответ:",
+                    reply_markup=reply_markup
+                )
 
-            await update.message.reply_text(
-                "Вы можете задать ещё вопрос или ввести /cancel для завершения"
-            )
+                await update.message.reply_text(
+                    "Вы можете задать ещё вопрос или ввести /cancel для завершения"
+                )
+            else:
+                await update.message.reply_text(
+                    "❌ Ошибка при сохранении ответа.\n"
+                    "Попробуйте снова или используйте /cancel."
+                )
         else:
             await update.message.reply_text(
-                "❌ Ошибка при сохранении ответа.\n"
+                "❌ Возможно, вопрос не относится к сервисам НГТУ.\n"
                 "Попробуйте снова или используйте /cancel."
             )
 

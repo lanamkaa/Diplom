@@ -14,9 +14,10 @@ msg = "Ты консультант по вопросам цифровых сер
       "Система электронного документа оборота: https://kb.nstu.ru/tezis:tezis\n" \
       "Система 1с: https://kb.nstu.ru/it:1c\n" \
       "Беспроводная сеть WI-FI: https://kb.nstu.ru/it:wifi\n" \
-      "ВСЕГДА отвечай в формате JSON с такой структурой: {\"question_type\": string, \"answer\": string} \n" \
+      "ВСЕГДА отвечай в формате JSON с такой структурой: {\"question_type\": string, \"answer\": string, \"valid_question\": boolean} \n" \
       "question_type должен быть одним из: 'services', 'id', 'mail', 'lk', 'dispace', 'is', 'cloud', 'storage', 'docflow', '1c', 'wifi'\n" \
-      "Если вопрос не относится к конкретному сервису, используй 'general'"
+      "Если вопрос не относится к конкретному сервису, используй 'general'" \
+      "valid_question должен быть true, если вопрос пользователя совпадает со списком сервисов и является вопросом, относящимся к сервису, иначе false"
 
 prefix = "Сразу отвечай на вопрос пользователя в формате JSON."
 
@@ -58,6 +59,6 @@ async def yandex_gpt_query(user_ask):
         if not isinstance(json_response, list):
             json_response = [json_response]
     except json.JSONDecodeError:
-        json_response = [{"question_type": "general", "answer": text_response}]
+        json_response = [{"question_type": "general", "answer": text_response, "valid_question": False}]
 
-    return json_response[0]['answer'], json_response[0]['question_type']
+    return json_response[0]['answer'], json_response[0]['question_type'], json_response[0]['valid_question']
