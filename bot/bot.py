@@ -12,11 +12,11 @@ from bot.handlers.feedback import handle_feedback, handle_feedback_comment, hand
 from bot.handlers.common import cancel
 from bot.handlers.ask import start_ask, process_question, handle_rating
 from bot.handlers.check_link import check_link_response, check_link
+from bot.jobs.analyze_question_ratings import analyze_question_ratings
 from bot.handlers.states import FEEDBACK_RATING, FEEDBACK_COMMENT, WAITING_FOR_QUESTION, CHECK_LINK_TEXT
 
 load_dotenv()
 
-ADMIN_IDS = [888737841]
 # Подключение к базе данных
 db = get_db_connection()
 if not db:
@@ -40,6 +40,7 @@ logger = logging.getLogger(__name__)
 #            )
 #    except Exception as e:
 #        logger.error(f"Ошибка в обработчике ошибок: {e}")
+
 
 def main():
     app = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
@@ -85,10 +86,11 @@ def main():
     # app.add_handler(CommandHandler("profile", profile))
 
 
-    #app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_plain_text))
-    #app.add_handler(MessageHandler(filters.COMMAND, handle_plain_text))  # чтобы ловить опечатки в командах
-    #app.job_queue.run_repeating(send_reminders, interval=86400, first=60)
-    #app.job_queue.run_repeating(send_reminders, interval=180, first=10) # проверка
+    # app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_plain_text))
+    # app.add_handler(MessageHandler(filters.COMMAND, handle_plain_text))  # чтобы ловить опечатки в командах
+    # app.job_queue.run_repeating(send_reminders, interval=86400, first=60)
+    # app.job_queue.run_repeating(send_reminders, interval=180, first=10) # проверка
+    app.job_queue.run_repeating(analyze_question_ratings, interval=20, first=60) # анализ раз в неделю 604800
 
 
     initialize_database() # для создания таблиц при включении бота
