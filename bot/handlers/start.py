@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes, ConversationHandler
 from ..utils.util import *
 from ..database.users.create_user import create_user_if_not_exists
 from ..database.users.update_last_active import update_last_active_at
+from ..jobs.analyze_question_ratings import ADMIN_IDS
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -25,7 +26,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_photo(update, context, "картинка1")
     await send_html(update, context, text)
 
-    await show_main_menu(update, context, {
+    # Базовые команды для всех пользователей
+    commands = {
         "start": "Главное меню 🧑‍🏫",
         "services": "Список сервисов 🗂️",
         "ask": "Задай вопрос ❔",
@@ -33,6 +35,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "feedback": "Обратная связь ❗",
         "check_link": "Проверка ссылки на спам",
         "profile": "Профиль 📊"
-    })
+    }
+
+    # Добавляем команду analyze для администраторов
+    if telegram_id in ADMIN_IDS:
+        commands["analyze"] = "📊 Анализ вопросов"
+
+    await show_main_menu(update, context, commands)
     
     return ConversationHandler.END

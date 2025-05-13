@@ -1,4 +1,4 @@
-valid_commands = ["start", "services", "ask", "help", "feedback", "check_link"]
+valid_commands = ["start", "services", "ask", "help", "feedback", "check_link", "analyze"]
 
 keyword_groups = {
     'start': ['начать', 'старт', 'запуск', 'давай начнем', 'поехали', 'start', 'go', 'begin'],
@@ -6,7 +6,8 @@ keyword_groups = {
     'ask': ['вопрос', 'спросить', 'ask', 'задать вопрос', 'задать гпт', 'у меня вопрос', 'question', 'ask a question'],
     'help': ['помощь', 'справка', 'help', 'что ты умеешь', 'как пользоваться', 'поддержка', 'assist', 'support', 'guide'],
     'feedback': ['отзыв', 'фидбек', 'feedback', 'оставить отзыв', 'написать отзыв', 'мнение', 'review', 'comment'],
-    'check_link': ['ссылка', 'проверить', 'link', 'проверка ссылки', 'ссылка безопасна', 'проверить ссылку', 'check link', 'is link safe', 'verify url']
+    'check_link': ['ссылка', 'проверить', 'link', 'проверка ссылки', 'ссылка безопасна', 'проверить ссылку', 'check link', 'is link safe', 'verify url'],
+    'analyze': ['анализ', 'статистика', 'analyze', 'статистика вопросов', 'анализ вопросов', 'отчет', 'report', 'statistics']
 }
 
 layout_map = str.maketrans(

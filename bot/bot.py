@@ -12,7 +12,7 @@ from bot.handlers.feedback import handle_feedback, handle_feedback_comment, hand
 from bot.handlers.common import cancel
 from bot.handlers.ask import start_ask, process_question, handle_rating
 from bot.handlers.check_link import check_link_response, check_link
-from bot.jobs.analyze_question_ratings import analyze_question_ratings
+from bot.jobs.analyze_question_ratings import analyze_question_ratings, analyze_command, show_questions_details
 from bot.handlers.states import FEEDBACK_RATING, FEEDBACK_COMMENT, WAITING_FOR_QUESTION, CHECK_LINK_TEXT
 
 load_dotenv()
@@ -83,6 +83,8 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("services", services))
     app.add_handler(CommandHandler("help", help))
+    app.add_handler(CommandHandler("analyze", analyze_command))
+    app.add_handler(CallbackQueryHandler(show_questions_details, pattern="^show_questions_details(_\d+)?$"))
     # app.add_handler(CommandHandler("profile", profile))
 
 
