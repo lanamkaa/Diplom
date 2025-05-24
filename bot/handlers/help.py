@@ -3,7 +3,7 @@ from telegram.constants import ParseMode
 from telegram.ext import ContextTypes, ConversationHandler
 from ..utils.util import *
 from ..database.users.update_last_active import update_last_active_at
-
+from ..database.users.create_user import create_user_if_not_exists
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Обработчик команды /help.
@@ -12,7 +12,14 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
 
     telegram_id = update.effective_user.id
+    username = update.effective_user.username
+    first_name = update.effective_user.first_name
     update_last_active_at(telegram_id)
+
+       # Создать пользователя, если не существует
+    if not create_user_if_not_exists(telegram_id, username, first_name):
+        print(f"⚠️ Не удалось проверить/создать пользователя {telegram_id} в базе данных")
+
 
     await send_photo(update, context, "картинка2")
     text = load_message("help")

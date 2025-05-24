@@ -225,7 +225,9 @@ async def generate_answer(question: str, question_type: str) -> Tuple[str, str]:
         content_text = "Информация недоступна"
     else:
         content_text = scraped_content['text']
-        
+
+    formatting_hints = "answer должен быть отформатирован в виде списка, ссылок, таблиц, и т.д."
+
     print('content_text', content_text)
     prompt = ANSWER_PROMPT.format(
         service_name=service['name'],
@@ -235,7 +237,7 @@ async def generate_answer(question: str, question_type: str) -> Tuple[str, str]:
     )
     
     # Добавляем вопрос пользователя в промпт
-    full_prompt = f"{prompt}\n\nВопрос пользователя: {question}"
+    full_prompt = f"{prompt}\n\nВопрос пользователя: {question} \n\n{formatting_hints}"
     
     try:
         response = await yandex_gpt_request(full_prompt)

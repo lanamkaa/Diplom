@@ -6,6 +6,7 @@ from ..yandexgpt import yandex_gpt_query
 from .ask_gpt_workflow import ask_gpt_workflow, rate_answer
 from ..database.users.get_user import get_user_by_telegram_id
 from ..database.users.update_last_active import update_last_active_at
+from ..database.users.create_user import create_user_if_not_exists
 
 async def start_ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -31,13 +32,19 @@ async def process_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
     update_last_active_at(telegram_id)
 
+ 
+
+    telegram_id = update.effective_user.id
+    username = update.effective_user.username
+    first_name = update.effective_user.first_name
+
+       # Создать пользователя, если не существует
+    if not create_user_if_not_exists(telegram_id, username, first_name):
+        print(f"⚠️ Не удалось проверить/создать пользователя {telegram_id} в базе данных")
+
+
     user = get_user_by_telegram_id(telegram_id)
-    if not user:
-        await update.message.reply_text(
-            "❌ Пользователь не найден. Введите /start для начала."
-        )
-        return WAITING_FOR_QUESTION
-    
+
     user_id = user[0]  # Получаем только user_id из кортежа
     user_question = update.message.text
 

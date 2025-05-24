@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from bot.database.connect import get_db_connection
 from telegram.ext import ContextTypes
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from bot.database.users.create_user import create_user_if_not_exists
 import logging
 
 ADMIN_IDS = [888737841, 344532317]
@@ -92,6 +93,7 @@ async def show_questions_details(update: Update, context: ContextTypes.DEFAULT_T
     await query.answer()
     
     user_id = query.from_user.id
+    
     if user_id not in ADMIN_IDS:
         await query.edit_message_text("У вас нет доступа к этой функции.")
         return
@@ -184,6 +186,16 @@ async def analyze_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     Запускает анализ вопросов вручную.
     """
     user_id = update.effective_user.id
+    telegram_id = update.effective_user.id
+    username = update.effective_user.username
+    first_name = update.effective_user.first_name
+
+       # Создать пользователя, если не существует
+    if not create_user_if_not_exists(telegram_id, username, first_name):
+        print(f"⚠️ Не удалось проверить/создать пользователя {telegram_id} в базе данных")
+
+
+
     if user_id not in ADMIN_IDS:
         await update.message.reply_text("У вас нет доступа к этой команде.")
         return
