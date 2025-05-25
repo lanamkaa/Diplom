@@ -13,8 +13,12 @@ async def start_ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     Обработчик команды /ask.
     Запрашивает у пользователя вопрос для GPT.
     """
-
-    context.user_data.clear()
+    # Очищаем предыдущие данные, кроме истории сообщений
+    if 'messages' not in context.user_data:
+        context.user_data['messages'] = []
+    else:
+        # Очищаем только текущий вопрос
+        context.user_data.pop('current_question_id', None)
 
     telegram_id = update.effective_user.id
     update_last_active_at(telegram_id)
@@ -32,30 +36,34 @@ async def process_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
     update_last_active_at(telegram_id)
 
- 
-
-    telegram_id = update.effective_user.id
-    username = update.effective_user.username
-    first_name = update.effective_user.first_name
-
-       # Создать пользователя, если не существует
-    if not create_user_if_not_exists(telegram_id, username, first_name):
+    # Создать пользователя, если не существует
+    if not create_user_if_not_exists(telegram_id, update.effective_user.username, update.effective_user.first_name):
         print(f"⚠️ Не удалось проверить/создать пользователя {telegram_id} в базе данных")
 
-
     user = get_user_by_telegram_id(telegram_id)
-
     user_id = user[0]  # Получаем только user_id из кортежа
     user_question = update.message.text
 
     try:
-        gpt_response, question_type, valid_question = await yandex_gpt_query(user_question)
+        # Добавляем вопрос пользователя в историю
+        context.user_data['messages'].append({
+            "role": "user",
+            "text": user_question
+        })
+
+        gpt_response, question_type, valid_question = await yandex_gpt_query(user_question, context.user_data['messages'])
         if valid_question:
             print(gpt_response, question_type)
             success, question_id = ask_gpt_workflow(user_id, user_question, gpt_response, question_type)
 
             if success:
                 context.user_data['current_question_id'] = question_id
+
+                # Добавляем ответ GPT в историю
+                context.user_data['messages'].append({
+                    "role": "assistant",
+                    "text": gpt_response
+                })
 
                 keyboard = [
                     [
@@ -70,6 +78,12 @@ async def process_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     ]
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
+
+                # Добавляем историю диалога к ответу
+                history_text = "\n\nИстория диалога:\n"
+                for msg in context.user_data['messages'][-4:]:  # Показываем последние 2 пары вопрос-ответ
+                    role = "Вы" if msg["role"] == "user" else "Бот"
+                    history_text += f"{role}: {msg['text']}\n"
 
                 await update.message.reply_text(
                     f"{gpt_response}\n\n"

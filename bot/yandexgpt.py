@@ -1,4 +1,4 @@
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, List
 import requests
 from dotenv import load_dotenv
 import logging
@@ -105,12 +105,12 @@ URL: {service_url}
 
 system_prompt = "Ты консультант по вопросам цифровых сервисов НГТУ."
 
-async def yandex_gpt_request(prompt: str) -> Dict[str, Any]:
+async def yandex_gpt_request(messages: List[Dict[str, Any]], system_message: Dict[str, Any] = None) -> Dict[str, Any]:
     """
     Отправляет запрос к YandexGPT и получает ответ.
     
     Args:
-        prompt: Промпт для генерации ответа
+        messages: Список сообщений для запроса
         
     Returns:
         Dict[str, Any]: Распарсенный JSON ответ
@@ -123,16 +123,11 @@ async def yandex_gpt_request(prompt: str) -> Dict[str, Any]:
             "maxTokens": "2000"
         },
         "messages": [
-            {
-                "role": "system",
-                "text": system_prompt
-            },
-            {
-                "role": "user",
-                "text": prompt
-            }
+            system_message,
+            *messages
         ]
     }
+
     url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
     headers = {
         "Content-Type": "application/json",
@@ -167,12 +162,13 @@ def get_service_key_by_name(service_name: str) -> str:
             return key
     return "general"
 
-async def identify_question_type(question: str) -> Tuple[str, float, bool]:
+async def identify_question_type(question: str, messages_history: List[Dict[str, Any]] = None) -> Tuple[str, float, bool]:
     """
     Первый шаг: определение типа вопроса.
     
     Args:
         question: Вопрос пользователя
+        messages_history: История сообщений для контекста
         
     Returns:
         Tuple[str, float, bool]: (тип вопроса, уверенность, валидность)
@@ -180,11 +176,30 @@ async def identify_question_type(question: str) -> Tuple[str, float, bool]:
     services_list = "\n".join([f"- {service['name']}" for service in SERVICES_CONFIG.values()])
     prompt = QUESTION_TYPE_PROMPT.format(services_list=services_list)
     
-    # Добавляем вопрос пользователя в промпт
-    full_prompt = f"{prompt}\n\nВопрос пользователя: {question}"
+    # Формируем сообщения для запроса
+    messages = []
+    formatting_hints = "answer должен быть отформатирован в виде списка, ссылок, таблиц, и т.д."
+
+
+    system_message = {
+        "role": "system",
+        "text":  f"{prompt}\n\n {system_prompt}\n\n {formatting_hints}"
+    }
     
+    # Добавляем историю сообщений, если она есть
+    if messages_history:
+        messages.extend(messages_history)
+    
+    # Добавляем текущий вопрос
+    messages.append({
+        "role": "user",
+        "text": question
+    })
+    
+    logger.info('Messages for question type identification: %s', messages)
+
     try:
-        response = await yandex_gpt_request(full_prompt)
+        response = await yandex_gpt_request(messages, system_message)
         if "error" in response:
             return "general", 0.0, False
             
@@ -202,83 +217,101 @@ async def identify_question_type(question: str) -> Tuple[str, float, bool]:
         logger.error(f"Ошибка при определении типа вопроса: {e}")
         return "general", 0.0, False
 
-async def generate_answer(question: str, question_type: str) -> Tuple[str, str]:
+async def generate_answer(question: str, question_type: str, messages_history: list = None) -> str:
     """
-    Второй шаг: генерация ответа на основе типа вопроса.
+    Генерирует ответ на вопрос с учетом типа вопроса и истории сообщений.
     
     Args:
-        question: Вопрос пользователя
-        question_type: Определенный тип вопроса
+        question: Текст вопроса
+        question_type: Тип вопроса (ключ из SERVICES_CONFIG)
+        messages_history: История сообщений для контекста
         
     Returns:
-        Tuple[str, str]: (ответ, дополнительная информация)
+        str: Сгенерированный ответ
     """
-    if question_type not in SERVICES_CONFIG:
-        return "Извините, я не могу найти информацию по этому вопросу.", ""
-    
-    service = SERVICES_CONFIG[question_type]
-    
-    # Получаем контент с URL сервиса
-    scraped_content = scrape_url(service['url'])
-    if not scraped_content:
-        logger.warning(f"Не удалось получить контент с URL: {service['url']}")
-        content_text = "Информация недоступна"
-    else:
-        content_text = scraped_content['text']
-
-    formatting_hints = "answer должен быть отформатирован в виде списка, ссылок, таблиц, и т.д."
-
-    print('content_text', content_text)
-    prompt = ANSWER_PROMPT.format(
-        service_name=service['name'],
-        service_description=service['description'],
-        service_url=service['url'],
-        service_content=content_text
-    )
-    
-    # Добавляем вопрос пользователя в промпт
-    full_prompt = f"{prompt}\n\nВопрос пользователя: {question} \n\n{formatting_hints}"
-    
     try:
-        response = await yandex_gpt_request(full_prompt)
-        if "error" in response:
-            return "Произошла ошибка при генерации ответа.", ""
-            
-        return (
-            response.get("answer", "Извините, не удалось сгенерировать ответ."),
-            response.get("additional_info", "")
-        )
-    except Exception as e:
-        logger.error(f"Ошибка при генерации ответа: {e}")
-        return "Произошла ошибка при генерации ответа.", ""
+        if question_type not in SERVICES_CONFIG:
+            return "Извините, я не могу найти информацию по этому сервису."
 
-async def yandex_gpt_query(user_question: str) -> Tuple[str, str, bool]:
+        service = SERVICES_CONFIG[question_type]
+        
+        # Получаем контент с сайта сервиса
+        content = scrape_url(service['url'])
+        content_text = content.get('text', 'Информация недоступна') if content else 'Информация недоступна'
+        
+        # Формируем промпт с учетом истории
+        system_prompt = ANSWER_PROMPT.format(
+            service_name=service['name'],
+            service_description=service['description'],
+            service_url=service['url'],
+            service_content=content_text
+        )
+        
+        # Формируем сообщения для запроса
+        messages = []
+
+        system_message = {
+            "role": "system",
+            "text": system_prompt
+        }
+        
+        # Добавляем историю сообщений, если она есть
+        if messages_history:
+            messages.extend(messages_history)
+            
+        # Добавляем текущий вопрос
+        messages.append({
+            "role": "user",
+            "text": question
+        })
+      
+        # Отправляем запрос к YandexGPT
+        response = await yandex_gpt_request(messages, system_message)
+        
+        if not response:
+            return "Извините, не удалось получить ответ. Пожалуйста, попробуйте позже."
+            
+        # Проверяем, является ли ответ уже словарем
+        if isinstance(response, dict):
+            return response.get('answer', 'Не удалось сформировать ответ.')
+            
+        # Если ответ - строка, пытаемся распарсить JSON
+        try:
+            answer_data = json.loads(response)
+            return answer_data.get('answer', 'Не удалось сформировать ответ.')
+        except json.JSONDecodeError:
+            # Если не удалось распарсить JSON, возвращаем ответ как есть
+            return response
+            
+    except Exception as e:
+        logger.error(f"Ошибка при генерации ответа: {str(e)}")
+        return "Произошла ошибка при генерации ответа."
+
+async def yandex_gpt_query(msg: str, messages_history: list = None) -> Tuple[str, str, bool]:
     """
-    Основная функция для обработки запроса пользователя.
-    Выполняет двухшаговый процесс: определение типа вопроса и генерация ответа.
+    Отправляет запрос к YandexGPT и возвращает ответ.
     
     Args:
-        user_question: Вопрос пользователя
+        msg: Текст запроса
+        messages_history: История сообщений для контекста
         
     Returns:
         Tuple[str, str, bool]: (ответ, тип вопроса, валидность вопроса)
     """
-    # Шаг 1: Определение типа вопроса
-    question_type, confidence, is_valid = await identify_question_type(user_question)
-    logger.info('Question type identification: type=%s, confidence=%f, valid=%s', 
-                question_type, confidence, is_valid)
-    print('Шаг 1')
-    print(confidence)
-    if not is_valid or confidence < 0.5:
-        return "Извините, я не могу определить, к какому сервису относится ваш вопрос.", "general", False
-
-    # Шаг 2: Генерация ответа
-    answer, additional_info = await generate_answer(user_question, question_type)
-    logger.info('Answer generation: answer=%s, additional_info=%s', answer, additional_info)
-    
-    # Формируем полный ответ
-    full_answer = answer
-    if additional_info:
-        full_answer += f"\n\nДополнительная информация:\n{additional_info}"
-    
-    return full_answer, question_type, True
+    try:
+        # Определяем тип вопроса
+        question_type, confidence, valid_question = await identify_question_type(msg, messages_history)
+        
+        if not valid_question:
+            return "Извините, я не могу определить, к какому сервису относится ваш вопрос. Пожалуйста, уточните вопрос.", "general", False
+            
+        if confidence < 0.7:
+            return "Извините, я не уверен, что правильно понял ваш вопрос. Пожалуйста, переформулируйте его.", "general", False
+            
+        # Получаем ответ
+        answer = await generate_answer(msg, question_type, messages_history)
+        return answer, question_type, True
+        
+    except Exception as e:
+        logger.error(f"Ошибка при генерации ответа: {str(e)}")
+        return "Произошла ошибка при генерации ответа.", "general", False
