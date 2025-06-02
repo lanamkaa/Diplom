@@ -12,6 +12,8 @@ from bot.handlers.feedback import handle_feedback, handle_feedback_comment, hand
 from bot.handlers.common import cancel
 from bot.handlers.ask import start_ask, process_question, handle_rating
 from bot.handlers.check_link import check_link_response, check_link
+from bot.handlers.reminders import send_reminders
+from bot.handlers.profile import profile_command, reminder_toggle
 from bot.jobs.analyze_question_ratings import analyze_question_ratings, analyze_command, show_questions_details
 from bot.handlers.states import FEEDBACK_RATING, FEEDBACK_COMMENT, WAITING_FOR_QUESTION, CHECK_LINK_TEXT
 
@@ -47,6 +49,7 @@ def main():
     job_queue = JobQueue()
     job_queue.set_application(app)
 
+    # Создаем основной обработчик разговоров
     conv = ConversationHandler(
         entry_points=[  
            CommandHandler("feedback", handle_feedback),
@@ -78,27 +81,22 @@ def main():
         per_chat=True
     )
 
-    app.add_handler(conv)
-
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("services", services))
+    # Добавляем обработчики в правильном порядке
+    app.add_handler(CommandHandler("start", start))  # Базовые команды должны быть первыми
     app.add_handler(CommandHandler("help", help))
+    app.add_handler(CommandHandler("services", services))
     app.add_handler(CommandHandler("analyze", analyze_command))
+    app.add_handler(profile_command)  # Обработчик команды /profile
+    app.add_handler(reminder_toggle)  # Обработчик кнопки переключения напоминаний
+    app.add_handler(conv)  # Основной обработчик разговоров
     app.add_handler(CallbackQueryHandler(show_questions_details, pattern="^show_questions_details(_\d+)?$"))
-    # app.add_handler(CommandHandler("profile", profile))
 
+    # Запускаем задачи
+    app.job_queue.run_repeating(send_reminders, interval=60, first=10)  # проверка
+    app.job_queue.run_repeating(analyze_question_ratings, interval=20, first=60)  # анализ раз в неделю 604800
 
-    # app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_plain_text))
-    # app.add_handler(MessageHandler(filters.COMMAND, handle_plain_text))  # чтобы ловить опечатки в командах
-    # app.job_queue.run_repeating(send_reminders, interval=86400, first=60)
-    # app.job_queue.run_repeating(send_reminders, interval=180, first=10) # проверка
-    app.job_queue.run_repeating(analyze_question_ratings, interval=20, first=60) # анализ раз в неделю 604800
-
-
-    initialize_database() # для создания таблиц при включении бота
-    
-#    app.add_error_handler(error_handler)
+    # Инициализируем базу данных
+    initialize_database()
 
     print("Бот запущен...")
-
     app.run_polling()

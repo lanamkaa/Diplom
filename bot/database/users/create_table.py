@@ -20,7 +20,8 @@ def create_user_table(conn=None):
             first_name VARCHAR(100),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_active_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            last_reminder_sent_at TIMESTAMP
+            last_reminder_sent_at TIMESTAMP,
+            reminder_enabled BOOLEAN DEFAULT TRUE
         )
         """)
 

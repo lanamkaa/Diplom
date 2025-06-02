@@ -1,43 +1,133 @@
-from telegram import Update
-from telegram.ext import ContextTypes, ConversationHandler
-from telegram.constants import ParseMode
-from ..utils.util import escape_markdown
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ContextTypes, CommandHandler, CallbackQueryHandler
 from ..database.users.get_user import get_user_by_telegram_id
 from ..database.users.update_last_active import update_last_active_at
+from ..database.users.update_reminder_status import update_reminder_status
+from ..handlers.reminders import send_reminders
+from ..database.users.create_user import create_user_if_not_exists
+import logging
 
+logger = logging.getLogger(__name__)
 
-async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Обработчик команды /profile.
-    Отправляет пользователю его профиль: имя, username и даты активности.
+    Показывает профиль пользователя и настройки.
     """
-    context.user_data.clear()
+    telegram_id = update.effective_user.id
+    logger.info(f"Profile command received from user {telegram_id}")
+
+    # Создать пользователя, если не существует
+    if not create_user_if_not_exists(telegram_id, update.effective_user.username, update.effective_user.first_name):
+        logger.error(f"⚠️ Не удалось проверить/создать пользователя {telegram_id} в базе данных")
+        await update.message.reply_text("❌ Произошла ошибка при получении профиля. Пожалуйста, попробуйте позже.")
+        return
+
+    user = get_user_by_telegram_id(telegram_id)
+    if not user:
+        await update.message.reply_text("❌ Пользователь не найден.")
+        return
+
+    update_last_active_at(telegram_id)
+
+    # Создаем клавиатуру с кнопкой переключения напоминаний
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "🔔 Напоминания: " + ("Включены" if user[5] else "Выключены"),
+                callback_data="toggle_reminders"
+            )
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text(
+        f"👤 Ваш профиль:\n\n"
+        f"ID: {user[0]}\n"
+        f"Telegram ID: {telegram_id}\n"
+        f"Username: @{user[1]}\n"
+        f"Имя: {user[2]}\n"
+        f"Дата регистрации: {user[3]}\n"
+        f"Последняя активность: {user[4]}\n\n"
+        f"Настройки:",
+        reply_markup=reply_markup
+    )
+
+async def handle_reminder_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Обрабатывает переключение статуса напоминаний.
+    """
+    query = update.callback_query
+    logger.info(f"Reminder toggle callback received: {query.data}")
+    await query.answer()
 
     telegram_id = update.effective_user.id
     user = get_user_by_telegram_id(telegram_id)
+    
+    if not user:
+        logger.error(f"User {telegram_id} not found when trying to toggle reminders")
+        await query.edit_message_text("❌ Ошибка: пользователь не найден.")
+        return
 
-    if user:
-        user_id, username, first_name, created_at, last_active_at = user
-
-        first_name = escape_markdown(first_name or "Не указано")
-        username = escape_markdown(username or "Не указано")
-        created_at_str = escape_markdown(created_at.strftime('%d.%m.%Y %H:%M') if created_at else "Неизвестно")
-        last_active_str = escape_markdown(last_active_at.strftime('%d.%m.%Y %H:%M') if last_active_at else "Неизвестно")
-
-        profile_text = (
-            "👤 *Ваш профиль:*\n\n"
-            f"*Имя:* {first_name}\n"
-            f"*Username:* @{username}\n"
-            f"*Дата регистрации:* {created_at_str}\n"
-            f"*Последняя активность:* {last_active_str}"
+    # Получаем текущий статус и инвертируем его
+    current_status = user[5]  # reminder_enabled находится в 6-м элементе кортежа
+    new_status = not current_status
+    logger.info(f"Toggling reminders for user {telegram_id} from {current_status} to {new_status}")
+    
+    # Обновляем статус в базе данных
+    if update_reminder_status(telegram_id, new_status):
+        # Обновляем клавиатуру
+        keyboard = [
+            [
+                InlineKeyboardButton(
+                    "🔔 Напоминания: " + ("Включены" if new_status else "Выключены"),
+                    callback_data="toggle_reminders"
+                )
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        # Обновляем сообщение
+        await query.edit_message_text(
+            f"👤 Ваш профиль:\n\n"
+            f"ID: {user[0]}\n"
+            f"Telegram ID: {telegram_id}\n"
+            f"Username: @{user[1]}\n"
+            f"Имя: {user[2]}\n"
+            f"Дата регистрации: {user[3]}\n"
+            f"Последняя активность: {user[4]}\n\n"
+            f"Настройки:",
+            reply_markup=reply_markup
         )
+        
+        # Обновляем статус напоминаний в job_queue
+        if new_status:
+            # Проверяем, нет ли уже запущенного job'а
+            job_exists = False
+            for job in context.job_queue.jobs():
+                if job.name == 'send_reminders':
+                    job_exists = True
+                    break
+            
+            if not job_exists:
+                context.job_queue.run_repeating(
+                    send_reminders,
+                    interval=3600,  # каждый час
+                    first=10,  # первое выполнение через 10 секунд
+                    name='send_reminders'
+                )
+                logger.info(f"Started reminder job for user {telegram_id}")
+        else:
+            # Удаляем job, если он существует
+            for job in context.job_queue.jobs():
+                if job.name == 'send_reminders':
+                    job.schedule_removal()
+                    logger.info(f"Removed reminder job for user {telegram_id}")
     else:
-        profile_text = (
-            "😔 *Профиль не найден.*\n"
-            "Пожалуйста, начните с команды /start."
-        )
+        logger.error(f"Failed to update reminder status for user {telegram_id}")
+        await query.edit_message_text("❌ Ошибка при обновлении настроек.")
 
-    await update.message.reply_text(profile_text, parse_mode=ParseMode.MARKDOWN_V2)
-    update_last_active_at(telegram_id)
+# Создаем обработчики
+profile_command = CommandHandler("profile", profile)
+reminder_toggle = CallbackQueryHandler(handle_reminder_toggle, pattern="toggle_reminders")
 
-    return ConversationHandler.END
