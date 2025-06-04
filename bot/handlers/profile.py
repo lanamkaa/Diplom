@@ -4,11 +4,17 @@ from ..database.users.get_user import get_user_by_telegram_id
 from ..database.users.update_last_active import update_last_active_at
 from ..database.users.update_reminder_status import update_reminder_status
 from ..handlers.reminders import send_reminders
-from ..utils.util import escape_markdown
 from ..database.users.create_user import create_user_if_not_exists
+from babel.dates import format_datetime
 import logging
 
 logger = logging.getLogger(__name__)
+
+def format_date_russian(date):
+    """Format date in Russian style: '4 марта 2025 13:16'"""
+    if not date:
+        return "Неизвестно"
+    return format_datetime(date, format='d MMMM YYYY HH:mm', locale='ru')
 
 async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -42,9 +48,8 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    created_at_str = escape_markdown(user[3].strftime('%d.%m.%Y %H:%M') if user[3] else "Неизвестно")
-    last_active_str = escape_markdown(user[4].strftime('%d.%m.%Y %H:%M') if user[4] else "Неизвестно")
-
+    created_at_str = format_datetime(user[3], format='d MMMM YYYY HH:mm', locale='ru') if user[3] else "Неизвестно"
+    last_active_str = format_datetime(user[4], format='d MMMM YYYY HH:mm', locale='ru') if user[4] else "Неизвестно"
 
     await update.message.reply_text(
         f"👤 Ваш профиль:\n\n"
@@ -92,8 +97,8 @@ async def handle_reminder_toggle(update: Update, context: ContextTypes.DEFAULT_T
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
-        created_at_str = escape_markdown(user[3].strftime('%d.%m.%Y %H:%M') if user[3] else "Неизвестно")
-        last_active_str = escape_markdown(user[4].strftime('%d.%m.%Y %H:%M') if user[4] else "Неизвестно")
+        created_at_str = format_datetime(user[3], format='d MMMM YYYY HH:mm', locale='ru') if user[3] else "Неизвестно"
+        last_active_str = format_datetime(user[4], format='d MMMM YYYY HH:mm', locale='ru') if user[4] else "Неизвестно"
         
         # Обновляем сообщение
         await query.edit_message_text(
