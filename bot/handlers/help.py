@@ -23,7 +23,7 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await send_photo(update, context, "картинка2")
     text = load_message("help")
-    await send_text(update, context, text)
+    await send_html(update, context, text)
 
     social_text = (
         "🌐 *Наши социальные сети:*\n\n"
@@ -31,8 +31,8 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "[Телеграм НГТУ](https://t.me/nstu_neti)\n"
         "[Одноклассники НГТУ](https://ok.ru/ngtuneti)\n"
         "[Rutube НГТУ](https://rutube.ru/channel/24953858/)\n"
-        "[Яндекс.Дзен НГТУ](https://dzen.ru/nstu_neti)\n"
-        "[Сайт НГТУ](https://www.nstu.ru)"
+        "[Яндекс\.Дзен НГТУ](https://dzen.ru/nstu_neti)\n"
+        "[Сайт НГТУ](https://www\.nstu\.ru)"
     )
 
     await context.bot.send_message(
