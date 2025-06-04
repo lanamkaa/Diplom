@@ -4,6 +4,7 @@ from ..database.users.get_user import get_user_by_telegram_id
 from ..database.users.update_last_active import update_last_active_at
 from ..database.users.update_reminder_status import update_reminder_status
 from ..handlers.reminders import send_reminders
+from ..utils.util import escape_markdown
 from ..database.users.create_user import create_user_if_not_exists
 import logging
 
@@ -41,14 +42,18 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
+    created_at_str = escape_markdown(user[3].strftime('%d.%m.%Y %H:%M') if user[3] else "Неизвестно")
+    last_active_str = escape_markdown(user[4].strftime('%d.%m.%Y %H:%M') if user[4] else "Неизвестно")
+
+
     await update.message.reply_text(
         f"👤 Ваш профиль:\n\n"
         f"ID: {user[0]}\n"
         f"Telegram ID: {telegram_id}\n"
         f"Username: @{user[1]}\n"
         f"Имя: {user[2]}\n"
-        f"Дата регистрации: {user[3]}\n"
-        f"Последняя активность: {user[4]}\n\n"
+        f"Дата регистрации: {created_at_str}\n"
+        f"Последняя активность: {last_active_str}\n\n"
         f"Настройки:",
         reply_markup=reply_markup
     )
@@ -86,6 +91,9 @@ async def handle_reminder_toggle(update: Update, context: ContextTypes.DEFAULT_T
             ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
+
+        created_at_str = escape_markdown(user[3].strftime('%d.%m.%Y %H:%M') if user[3] else "Неизвестно")
+        last_active_str = escape_markdown(user[4].strftime('%d.%m.%Y %H:%M') if user[4] else "Неизвестно")
         
         # Обновляем сообщение
         await query.edit_message_text(
@@ -94,8 +102,8 @@ async def handle_reminder_toggle(update: Update, context: ContextTypes.DEFAULT_T
             f"Telegram ID: {telegram_id}\n"
             f"Username: @{user[1]}\n"
             f"Имя: {user[2]}\n"
-            f"Дата регистрации: {user[3]}\n"
-            f"Последняя активность: {user[4]}\n\n"
+            f"Дата регистрации: {created_at_str}\n"
+            f"Последняя активность: {last_active_str}\n\n"
             f"Настройки:",
             reply_markup=reply_markup
         )

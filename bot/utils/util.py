@@ -7,6 +7,12 @@ import os
 # получает путь к корневой директории проекта
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 
+# экранирует специальные символы для MarkdownV2
+def escape_markdown(text: str) -> str:
+    escape_chars = r'\_*[]()~`>#+-=|{}.!'
+    return ''.join(f'\\{c}' if c in escape_chars else c for c in text)
+
+
 # посылает в чат текстовое сообщение
 async def send_text(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str) -> Message:
     if text.count('_') % 2 != 0:
