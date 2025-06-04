@@ -1,7 +1,7 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
 from telegram.constants import ParseMode
-from ..utils.scraping import get_links
+from ..utils.get_links import get_links
 from ..database.users.update_last_active import update_last_active_at
 from ..database.users.create_user import create_user_if_not_exists
 
