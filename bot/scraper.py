@@ -80,7 +80,7 @@ def scrape_url(url: str) -> Optional[Dict[str, str]]:
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # Получаем заголовок
-        title = soup.title.string if soup.title else "No title found"
+        title = soup.title.string if soup.title else "Нет заголовка"
         title = clean_text(title)
 
         # Удаляем ненужные элементы
@@ -96,7 +96,7 @@ def scrape_url(url: str) -> Optional[Dict[str, str]]:
 
         # Если текст слишком короткий, возможно, это не HTML страница
         if len(text) < 100:
-            logger.warning(f"Page content too short: {url}")
+            logger.warning(f"Контент слишком короткий: {url}")
             return None
 
         return {
@@ -106,10 +106,10 @@ def scrape_url(url: str) -> Optional[Dict[str, str]]:
         }
 
     except requests.RequestException as e:
-        logger.error(f"Error fetching URL {url}: {e}")
+        logger.error(f"Ошибка получения страницы {url}: {e}")
         return None
     except Exception as e:
-        logger.error(f"Unexpected error while scraping {url}: {e}")
+        logger.error(f"Ошибка при скрапинге {url}: {e}")
         return None
 
 def get_main_content(url: str) -> Optional[str]:

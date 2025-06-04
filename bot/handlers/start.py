@@ -28,13 +28,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Базовые команды для всех пользователей
     commands = {
-        "start": "Главное меню 🧑‍🏫",
+        "start": "Главное меню 🏠",
         "services": "Список сервисов 🗂️",
-        "ask": "Задай вопрос ❔",
+        "ask": "Задай вопрос 💡",
         "help": "Помощь 🤓",
-        "feedback": "Обратная связь ❗",
-        "check_link": "Проверка ссылки на спам",
-        "profile": "Профиль 📊"
+        "feedback": "Обратная связь ✉️",
+        "check_link": "Проверка ссылки на спам 🔍",
+        "profile": "Профиль 👤"
     }
 
     # Добавляем команду analyze для администраторов

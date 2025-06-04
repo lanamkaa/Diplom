@@ -7,14 +7,14 @@ def get_links():
     response = requests.get(url)
 
     if response.status_code != 200:
-        print(f"Failed to fetch the page. Status code: {response.status_code}")
+        print(f"Не удалось получить страницу. Код состояния: {response.status_code}")
         return []
 
     tree = html.fromstring(response.content)
     target_div = tree.xpath('//*[@id="dokuwiki__aside"]/div/div/div')
 
     if not target_div:
-        print("Target div not found.")
+        print("Ссылки не найдены")
         return []
 
     base_url = "https://kb.nstu.ru"

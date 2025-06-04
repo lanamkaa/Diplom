@@ -24,8 +24,8 @@ async def start_ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     update_last_active_at(telegram_id)
 
     await update.message.reply_text(
-        "Пожалуйста, введите ваш вопрос.\n\n"
-        "Для отмены действия — /cancel."
+        "Задайте ваш вопрос, и я постараюсь помочь! 😊\n\n"
+        "Если передумаете — просто нажмите /cancel"
     )
     return WAITING_FOR_QUESTION
 
@@ -101,7 +101,7 @@ async def process_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
         else:
             await update.message.reply_text(
-                "❌ Возможно, вопрос не относится к сервисам НГТУ.\n"
+                "Этот вопрос вне моей компетенции, но я с радостью помогу с другими темами! 💡\n\n"
                 "Попробуйте снова или используйте /cancel."
             )
 

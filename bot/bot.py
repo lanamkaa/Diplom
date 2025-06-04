@@ -31,18 +31,6 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
-        
-#async def error_handler(update, context):
-#    """Журнал ошибок"""
-#    logger.warning('Обновление "%s" вызвало ошибку "%s"', update, context.error)
-#    try:
-#        if update and update.effective_message:
-#            await update.effective_message.reply_text(
-#                "Извините, произошла ошибка. Пожалуйста, попробуйте позже."
-#            )
-#    except Exception as e:
-#        logger.error(f"Ошибка в обработчике ошибок: {e}")
-
 
 def main():
     app = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
@@ -93,7 +81,7 @@ def main():
 
     # Запускаем задачи
     app.job_queue.run_repeating(send_reminders, interval=60, first=10)  # проверка
-    app.job_queue.run_repeating(analyze_question_ratings, interval=20, first=60)  # анализ раз в неделю 604800
+    #app.job_queue.run_repeating(analyze_question_ratings, interval=20, first=60)  # анализ раз в неделю 604800
 
     # Инициализируем базу данных
     initialize_database()

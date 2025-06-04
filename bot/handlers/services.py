@@ -30,12 +30,12 @@ async def services(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         text=(
-            "🗂️ *Сервисы НГТУ*\n\n"
-            "Выберите интересующий вас сервис из списка ниже:\n"
-            "Нажмите на кнопку для перехода\\."
+            "🗂️ <b>Доступные цифровые сервисы НГТУ</b>\n\n"
+            "Выберите нужный сервис из списка ниже.\n"
+            "Для перехода просто нажмите на соответствующую кнопку."
         ),
         reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode=ParseMode.MARKDOWN_V2,
+        parse_mode=ParseMode.HTML,
         disable_web_page_preview=True
     )
 
