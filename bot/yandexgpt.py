@@ -67,6 +67,11 @@ SERVICES_CONFIG = {
         'name': 'Беспроводная сеть WI-FI',
         'url': 'https://kb.nstu.ru/it:wifi',
         'description': 'Подключение к Wi-Fi сети'
+    },
+    'general': {
+        'name': 'Общий вопрос про сервисы НГТУ',
+        'url': 'https://kb.nstu.ru/it:services',
+        'description': 'Нужно ответить на вопрос пользователя, в контексте сервисов НГТУ, и разбить по пунктам'
     }
 }
 
