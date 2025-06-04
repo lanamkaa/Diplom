@@ -5,7 +5,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from bot.database.users.create_user import create_user_if_not_exists
 import logging
 
-ADMIN_IDS = [888737841, 344532317]
+ADMIN_IDS = [888737841]
 
 logger = logging.getLogger(__name__)
 
@@ -177,7 +177,7 @@ async def show_questions_details(update: Update, context: ContextTypes.DEFAULT_T
             conn.close()
             
     except Exception as e:
-        logger.error(f"Critical error in show_questions_details: {e}")
+        logger.error(f"критическая ошибка в show_questions_details: {e}")
         await query.edit_message_text("Произошла критическая ошибка.")
 
 async def analyze_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
