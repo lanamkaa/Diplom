@@ -145,12 +145,12 @@ async def yandex_gpt_request(messages: List[Dict[str, Any]], system_message: Dic
     logger.info('Raw response: %s', text_response)
     
     try:
-        # Remove any markdown code block formatting
+        # Удаляем форматирование кода
         text_response = text_response.replace('```json', '').replace('```', '').strip()
         return json.loads(text_response)
     except json.JSONDecodeError as e:
-        logger.error(f"Error parsing JSON response: {e}")
-        return {"error": "Failed to parse response"}
+        logger.error(f"Ошибка при разборе JSON ответа: {e}")
+        return {"error": "Не удалось разобрать ответ"}
 
 def get_service_key_by_name(service_name: str) -> str:
     """

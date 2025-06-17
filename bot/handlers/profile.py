@@ -53,7 +53,6 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         f"👤 Ваш профиль:\n\n"
-        f"ID: {user[0]}\n"
         f"Telegram ID: {telegram_id}\n"
         f"Username: @{user[1]}\n"
         f"Имя: {user[2]}\n"
@@ -103,7 +102,6 @@ async def handle_reminder_toggle(update: Update, context: ContextTypes.DEFAULT_T
         # Обновляем сообщение
         await query.edit_message_text(
             f"👤 Ваш профиль:\n\n"
-            f"ID: {user[0]}\n"
             f"Telegram ID: {telegram_id}\n"
             f"Username: @{user[1]}\n"
             f"Имя: {user[2]}\n"

@@ -141,5 +141,5 @@ def get_main_content(url: str) -> Optional[str]:
         return result['text']
 
     except Exception as e:
-        logger.error(f"Error getting main content from {url}: {e}")
+        logger.error(f"Ошибка при получении основного контента с {url}: {e}")
         return None 
