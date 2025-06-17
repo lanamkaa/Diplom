@@ -147,7 +147,14 @@ async def yandex_gpt_request(messages: List[Dict[str, Any]], system_message: Dic
     try:
         # Удаляем форматирование кода
         text_response = text_response.replace('```json', '').replace('```', '').strip()
-        return json.loads(text_response)
+        parsed = json.loads(text_response)
+        if isinstance(parsed, list):
+            logger.error(f"YandexGPT response is a list, expected dict: {parsed}")
+            # Try to use the first element if it's a list of dicts
+            if parsed and isinstance(parsed[0], dict):
+                return parsed[0]
+            return {"error": "Ответ от модели в виде списка, а не объекта"}
+        return parsed
     except json.JSONDecodeError as e:
         logger.error(f"Ошибка при разборе JSON ответа: {e}")
         return {"error": "Не удалось разобрать ответ"}
@@ -205,6 +212,9 @@ async def identify_question_type(question: str, messages_history: List[Dict[str,
 
     try:
         response = await yandex_gpt_request(messages, system_message)
+        if not isinstance(response, dict):
+            logger.error(f"YandexGPT response is not a dict: {response}")
+            return "general", 0.0, False
         if "error" in response:
             return "general", 0.0, False
             
